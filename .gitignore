@@ -12,26 +12,28 @@ data/
 *.json
 *.csv
 *.tar.gz
-*.json (2).json
 persona_full_result_*.json
 books_sample_*.json
+index.html
 
-# Documentation and Portfolio
-docs/
-portfolio/
-composition/
-*.md
-*.html
-
-# VS Code and OS
-.vscode/
-.DS_Store
+# Node modules and builds
+node_modules/
+build/
+dist/
+.next/
+coverage/
 
 # Large or External Libraries
 lightfm/
 lightfm-1.17/
 
+# VS Code and OS
+.vscode/
+.DS_Store
+
 # Sensitive files
 *.pem
 *.key
 .env
+application-local.yml
+application-secret.yml

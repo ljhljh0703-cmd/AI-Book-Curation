@@ -1,0 +1,612 @@
+// Bookemon (북켓몬) — product deep-dive content.
+// Reframed for game AI / model practitioner audience.
+// Revision 3 — applies the B-11 corrections:
+//   - ScoreFusion 수식 실제 구현 기준 교체 (qdrant/rule/personalization/reranker)
+//   - 1M source pool / 1,000 persona subset / 63K events 규모 명시
+//   - 100 → 50 → 20 → 5 ranking funnel 유지
+//   - 구현 확인 / 문서 계약 fallback 분리
+//   - GTE 사례 단정 톤 완화
+//   - reward → reward proxy
+//   - live behavior loop ↔ offline simulation loop 합류 설명
+//   - 책 추천 도메인 ↔ 게임 AI 직무 역량 번역 명시
+ 
+window.BK = {
+  meta: {
+    productKo: "북켓몬",
+    productEn: "Bookemon",
+    tagline: "Synthetic User Simulator × Ranking Policy Experiment",
+    positioning:
+      "초기 사용자 데이터가 부족한 AI 추천 시스템을 위해, 합성 유저 시뮬레이터와 랭킹 정책 실험 프레임워크를 설계한 프로젝트.",
+    role: "이주형 · AI 실험 설계 / 시뮬레이터 설계 / 기획",
+    period: "기획·설계 · 2026",
+    docVersion: "v3.1",
+    repo: "github.com/juhyung/bookemon",
+  },
+ 
+  nav: [
+    { id: "vision",      ko: "Why",        index: "01" },
+    { id: "mechanism",   ko: "Loop",       index: "02" },
+    { id: "simulator",   ko: "Simulator",  index: "03" },
+    { id: "ranking",     ko: "Ranking",    index: "04" },
+    { id: "experiment",  ko: "Experiment", index: "05" },
+    { id: "boundaries",  ko: "Boundaries", index: "06" },
+  ],
+ 
+  hero: {
+    line1: "초기 데이터가 부족한",
+    line2: "추천 시스템을 위한",
+    line3: "합성 유저 시뮬레이터.",
+    sub:
+      "nvidia/Nemotron-Personas-Korea 1M source pool에서 1,000개 persona subset을 만들고, 실제 Qdrant 도서 corpus 위에서 63K synthetic interaction event를 생성했다. 이를 LightFM 후보 압축과 랭킹 정책 실험에 사용한 RL-style simulator/replay framework다.",
+    stats: [
+      { v: "1M",              label: "Persona Source Pool",       sub: "Nemotron-Personas-Korea 원천 페르소나 풀" },
+      { v: "1,000",           label: "Experiment Subset",         sub: "stable persona_id 기반 JSONL" },
+      { v: "28 → 12",         label: "Profile Compression",       sub: "raw fields → reading profile" },
+      { v: "63K",             label: "Synthetic Events",          sub: "1,000 personas × 63 events" },
+      { v: "100 → 50 → 20 → 5", label: "Ranking Funnel",          sub: "Qdrant → Rule → LightFM/Profile → ScoreFusion/GTE → Final" },
+    ],
+  },
+ 
+  // ── Boundary note — surfaces RL-style scope before any section ──
+  initialBoundary: {
+    tone: "blue",
+    label: "표현 경계 (먼저)",
+    body:
+      "본 프로젝트는 PPO·DQN·SAC 같은 강화학습 알고리즘을 학습한 사례가 아니다. user state · action · reward proxy · policy를 분리해 offline에서 랭킹 정책을 실험할 수 있도록 만든 RL-style simulator/replay framework다. 도메인은 책 추천이지만, 핵심 역량은 player/user model · action space · reward proxy · offline replay · policy comparison 설계에 있다.",
+  },
+ 
+  // ── §01 — Why This System ────────────────────────────────────────
+  vision: {
+    headlineKo: "초기 데이터가 없는 AI 추천을 어떻게 시작할 것인가.",
+    headlineEn: "Bootstrap a recommender when there is no real user history yet.",
+    lead:
+      "이 프로젝트의 핵심은 추천 UI가 아니라, 초기 데이터가 부족한 AI 시스템에서 user state를 만들고 action · reward proxy · policy를 분리해 offline에서 랭킹 정책을 실험할 수 있게 한 구조다. 게임 요소(북켓몬)는 메인 서사가 아니라 향후 real interaction event를 수집하기 위한 행동 데이터 루프다.",
+    leadFootnote:
+      "직무 연결 — 도메인은 책 추천이지만, 보여주려는 역량은 player/user model · action space · reward proxy · offline replay · policy comparison 설계 경험이다.",
+    cards: [
+      {
+        idx: "1",
+        title: "행동 데이터가 없다",
+        body:
+          "AI 추천은 사용자 행동 데이터가 있어야 개인화된다. 그러나 초기 유저는 데이터를 남기기 전에 이탈한다. 북켓몬 루프는 추천받은 책을 읽고·기록하고·리뷰하는 행동에 보상을 주어, 리텐션 장치가 곧 향후 real 행동 데이터 수집 장치가 되도록 설계했다.",
+        accent: "var(--accent)",
+      },
+      {
+        idx: "2",
+        title: "Real interaction = 0",
+        body:
+          "서비스 오픈 전에는 LightFM을 학습시킬 user-item interaction이 없다. nvidia/Nemotron-Personas-Korea 1M source pool에서 1,000개 persona subset을 만들고, Qdrant에 색인된 실제 도서 corpus 위에서 63K synthetic interaction event를 생성해 사전 학습 데이터로 사용했다.",
+        accent: "var(--accent3)",
+      },
+      {
+        idx: "3",
+        title: "100 → 50 → 20 → 5",
+        body:
+          "벡터 검색만으로는 100개 후보를 최종 5개로 좁히기 어렵다. Qdrant(100) → Rule filter(50) → LightFM/Profile(20) → ScoreFusion/GTE → Final(5)의 다단 퍼널을 두고, 단계별로 실험 변수를 분리해 정책을 비교했다.",
+        accent: "var(--accent2)",
+      },
+    ],
+    summaryCallout: {
+      tone: "blue",
+      label: "한 줄 요약",
+      body:
+        "이 프로젝트의 핵심은 추천 UI가 아니라, 초기 데이터가 부족한 AI 시스템에서 user state를 만들고 action · reward proxy · policy를 분리해 offline에서 랭킹 정책을 실험할 수 있게 한 구조다.",
+    },
+  },
+ 
+  // ── §02 — Retention as Data Collection Loop ──────────────────────
+  mechanism: {
+    headlineKo: "게임 요소는 메인 서사가 아니라, 행동 데이터 수집 루프다.",
+    headlineEn: "Gamification, repositioned as an interaction logger.",
+    lead: [
+      "북켓몬은 “추천받은 책을 읽고 → 기록하면 경험치를 얻고 → 캐릭터가 진화하고 → 다시 추천받는다”라는 순환 구조를 만든다.",
+      "이때 시스템 입장에서는 사용자의 모든 행동이 FAVORITE_ADD · READING_ADD · READ_ADD · RATING_ADD · REVIEW_ADD · DISLIKE_ADD 같은 학습/랭킹 신호로 저장된다. XP와 진화는 사용자의 시각적 보상이고, 시스템의 입력은 interaction event다.",
+    ],
+    introCallout: {
+      tone: "blue",
+      label: "관점 전환",
+      body:
+        "북켓몬은 “게임을 입힌 추천 서비스”가 아니라, AI 추천 시스템의 행동 데이터 수집 루프다. 추천 → 행동 → event log → 학습 데이터 → 다음 추천이라는 순환을 동작시키는 장치로 다룬다.",
+    },
+    xpTable: {
+      head: ["행동", "Event type", "XP (설계값)", "신호 의미"],
+      rows: [
+        { action: "도서 등록 (독서대)",  event: "READING_ADD",  xp: "+",  why: "“지금 읽고 싶다” — 의도적 선택, 잠정 양성 신호",         tone: "pos"  },
+        { action: "리뷰 작성",           event: "REVIEW_ADD",   xp: "++", why: "완독 + 명시적 호감 — 가장 강한 양성 신호 (72h 잠금)",     tone: "pos"  },
+        { action: "별점",                event: "RATING_ADD",   xp: "+",  why: "수치 호감 신호 — rating_bias 학습에 사용",                tone: "pos"  },
+        { action: "찜",                  event: "FAVORITE_ADD", xp: "+",  why: "적극적 관심 — implicit positive feedback",                 tone: "pos"  },
+        { action: "거부 표시",           event: "DISLIKE_ADD",  xp: "—",  why: "비선호 — LightFM 학습 제외 + ScoreFusion 페널티",          tone: "neg"  },
+        { action: "독서대 책 제거",      event: "—",            xp: "−",  why: "악용 방지 — 잘못된 등록으로 신호가 부풀려지는 상황 차단",     tone: "neg"  },
+      ],
+      caveat:
+        "XP 절대값은 코드와 정합이 끝난 항목만 표기한다. 현재 표는 신호의 부호와 상대 강도만을 설계값으로 보여주며, 정확한 정수 값은 정합 완료 후 갱신한다.",
+    },
+    evolution: [
+      {
+        step: 0,
+        ko: "알",
+        en: "Egg",
+        cond: "가입 직후",
+        line: "“…아직 무슨 책을 좋아하는지 모르겠어.” — interaction 0건.",
+      },
+      {
+        step: 1,
+        ko: "유년기",
+        en: "Hatchling",
+        cond: "첫 책 등록 이벤트 (XP 무관)",
+        line: "첫 READING_ADD 발생 — user state에 최초 신호 진입.",
+      },
+      {
+        step: 2,
+        ko: "장르 분기 · 청소년기",
+        en: "Adolescent",
+        cond: "누적 XP ≥ 임계값 · 주 장르 결정 (설계값)",
+        branches: ["2A · 인문학자", "2B · 모험가", "2C · 탐정"],
+        line: "취향 벡터가 3개 장르 클러스터 중 하나로 수렴 — interest_profile 안정화.",
+      },
+      {
+        step: 3,
+        ko: "성체 · 하이브리드",
+        en: "Hybrid Adult",
+        cond: "부 장르 비율 ≥ 40% (설계값)",
+        line: "메인 + 부 장르 결합 → 하이브리드 외형. 진화 역행 불가 (설계 목표).",
+      },
+    ],
+    designCards: [
+      {
+        title: "독서대 3권 제한",
+        problem:
+          "무제한 등록 → 모든 책에 ‘읽음’ 처리 → 취향 신호가 평탄화되어 추천 품질 붕괴.",
+        effect:
+          "동시 진행 3권으로 제한 → 사용자가 ‘읽을 책을 고르는 행위’ 자체가 강한 선호 신호로 작동. 잘못된 등록은 XP 페널티(음수)로 차단 (설계값).",
+      },
+      {
+        title: "리뷰 72시간 잠금",
+        problem:
+          "충동 리뷰는 표면 평가에 가깝다. event weight 가장 강한 REVIEW_ADD에 노이즈로 작용한다.",
+        effect:
+          "등록 후 72h 동안 리뷰 잠금 → 재방문 트리거 + REVIEW_ADD 신호의 품질 보장. is_training_data 플래그로 학습 데이터 자격을 분리.",
+      },
+    ],
+    callout: {
+      tone: "orange",
+      label: "역행 금지 (설계 명세 · 정합 예정)",
+      body:
+        "`users.current_stage`는 단조 증가만 허용하도록 설계했다. 명세상으로는 SELECT FOR UPDATE + GREATEST() 형태의 트랜잭션 계약으로 강제하지만, 현재 코드는 아래의 spec-impl gap 상태에 있어 정합이 끝나야 “구현 완료”라고 말할 수 있다.",
+    },
+    specGap: {
+      tone: "orange",
+      label: "명세 ↔ 구현 갭 (정합 작업 중)",
+      body:
+        "위 트리거 조건은 설계 명세 기준이다. 현재 `UserCharacterEntity.java`는 XP가 아닌 `reviewGrowthCount`(리뷰 카운트) 기반으로 stage 진행을 구현하고 있어 명세와 일치하지 않는다. 코드-명세 정합을 먼저 맞춘 뒤 단조 증가 계약을 동일 컬럼에 적용할 예정.",
+    },
+    loopMerge: {
+      tone: "blue",
+      label: "두 루프가 합류하는 지점",
+      body: [
+        "Live Behavior Loop — 추천 → 독서대 등록 → 리뷰/평점/찜/거부 → real interaction event.",
+        "Offline Simulation Loop — persona state → action별 Qdrant 검색 → synthetic interaction event.",
+        "두 루프는 같은 event schema로 합류하고, `train_lightfm.py`에서 PERSONA_ONLY → HYBRID_LITE → REAL_ONLY 전환 전략으로 이어진다. 서비스 초기에는 합성 데이터만으로 bootstrap하고, real event가 쌓이면 혼합·실데이터 모드로 옮겨 갈 수 있도록 설계했다.",
+      ],
+    },
+  },
+ 
+  // ── §03 — Synthetic User Simulator ───────────────────────────────
+  simulator: {
+    headlineKo: "Nvidia 페르소나를 user state로, Qdrant를 environment로.",
+    headlineEn: "Persona → state, action → search query, corpus → environment.",
+    lead: [
+      "Nvidia Nemotron-Personas-Korea는 행동 로그가 아니라 가상 사용자 state의 원천이다. 1M source pool에서 1,000개 persona subset을 만들고, 이를 독서 성향 profile로 압축한 뒤, 실제 도서 corpus 안에서 action별 후보를 검색해 63K synthetic interaction event를 생성했다.",
+      "Dataset을 “실제 사용자 행동”으로 포장하지 않는다. 이 파이프라인은 persona hallucination이 아니라 실제 corpus 위에서 synthetic interaction을 만드는 구조다.",
+    ],
+    pipeline: `flowchart LR
+    classDef src fill:#251a0e,stroke:#fb923c,color:#e2e8f0
+    classDef proc fill:#13132a,stroke:#a78bfa,color:#e2e8f0
+    classDef llm fill:#1b1335,stroke:#7c6fff,color:#e2e8f0
+    classDef env fill:#0e1f33,stroke:#38bdf8,color:#e2e8f0
+    classDef sink fill:#0f172a,stroke:#34d399,color:#e2e8f0
+ 
+    A[("nvidia/Nemotron-Personas-Korea\n1M source pool · 28 fields")] --> B["create_persona_subset.py\n1,000 subset · stable persona_id 기반 local JSONL"]
+    B --> C["enrich_nemotron_persona_profiles.py\nCLOVA HCX-007"]
+    C --> D["12-field reading profile\n(8 text · 4 numeric)"]
+    D --> E["generate_nemotron_profile_synthetic_events.py\naction-specific KURE query"]
+    E --> F[("Qdrant books_kure\n실제 도서 corpus")]
+    F --> E
+    E --> G["generate_nemotron_rule_based_synthetic_events.py\nProfileReranker teacher"]
+    G --> H[("synthetic event JSONL\nuser_source / event_type / weight\n≈ 63K events")]
+    H --> I["train_lightfm.py\nWARP · 32d · 10 epochs"]
+ 
+    class A src
+    class B,E,G proc
+    class C,D llm
+    class F env
+    class H,I sink`,
+    tiers: [
+      {
+        n: "1",
+        tone: "orange",
+        title: "페르소나 필드 직접 임베딩",
+        sub: "SYNTHETIC_NEMOTRON_QDRANT",
+        body:
+          "28개 필드 값을 이어붙인 단일 텍스트를 KURE로 임베딩 → Qdrant 검색. 유사도 상위는 positive, 하위는 DISLIKE 이벤트.",
+        limit:
+          "한계 — 행동 유형을 구분하지 않는 단일 쿼리라 ‘지금 읽고 싶은 책’과 ‘이미 다 읽은 책’을 같은 벡터로 검색한다.",
+      },
+      {
+        n: "2",
+        tone: "teal",
+        title: "LLM 프로파일 기반 행동별 검색",
+        sub: "SYNTHETIC_NEMOTRON_LLM_PROFILE_QDRANT",
+        body:
+          "페르소나 JSON → CLOVA HCX-007 → 12-field reading profile. 행동 유형별로 다른 profile text를 KURE 쿼리로 사용 (FAVORITE → interest, DISLIKE → dislike, …).",
+        limit:
+          "효과 — “지금 읽고 싶다”와 “이미 읽었다”의 검색 쿼리가 분리되어 같은 페르소나도 action별로 다른 후보를 만든다.",
+      },
+      {
+        n: "3",
+        tone: "blue",
+        title: "Production Rule Teacher 재정렬",
+        sub: "SYNTHETIC_NEMOTRON_LLM_PROFILE_RULE_BASED",
+        body:
+          "Tier 2 후보를 production `ProfileReranker`로 재점수화. 실제 서빙 중인 룰 로직이 합성 이벤트의 순서를 teacher로서 다시 정렬한다.",
+        limit:
+          "결과 — synthetic 이벤트가 서비스 파이프라인의 ProfileReranker 기준으로 재정렬되어, real 데이터 도착 시 정책 차이가 작아지도록 의도했다.",
+      },
+    ],
+    profileFields: {
+      head: ["필드", "행동 유형", "용도"],
+      rows: [
+        { a: "interest_profile_text",       b: "FAVORITE_ADD", c: "찜 검색 쿼리" },
+        { a: "reading_now_profile_text",    b: "READING_ADD",  c: "독서대 등록 검색 쿼리" },
+        { a: "read_completed_profile_text", b: "READ_ADD",     c: "완독 도서 검색 쿼리" },
+        { a: "dislike_profile_text",        b: "DISLIKE_ADD",  c: "거부 도서 검색 쿼리" },
+        { a: "search_profile_text",         b: "범용",         c: "공통 검색 쿼리" },
+        { a: "preference_summary",          b: "—",            c: "선호 요약" },
+        { a: "dispreference_summary",       b: "—",            c: "비선호 요약" },
+        { a: "reading_purpose_summary",     b: "—",            c: "독서 목적 요약" },
+      ],
+    },
+    profileBias: {
+      head: ["필드", "범위", "의미"],
+      rows: [
+        { a: "rating_bias",            b: "[0, 1]", c: "높은 평점을 주는 경향" },
+        { a: "review_sentiment_bias",  b: "[0, 1]", c: "긍정적 리뷰를 쓰는 경향" },
+        { a: "exploration_level",      b: "[0, 1]", c: "낯선 장르 탐색 경향 (후보 offset 조정)" },
+        { a: "confidence",             b: "[0, 1]", c: "LLM이 추론한 profile 신뢰도" },
+      ],
+    },
+    stateActionTable: {
+      head: ["RL-style 구성요소", "이 프로젝트의 대응", "근거"],
+      rows: [
+        { a: "State",          b: "persona_fields + LLM reading profile",                            c: "28 raw fields → 12 profile fields" },
+        { a: "Action",         b: "FAVORITE / READING / READ / RATING / REVIEW / DISLIKE _ADD",       c: "synthetic event generator" },
+        { a: "Reward proxy",   b: "event weight · real_weight_multiplier · dislike 제외",            c: "RL 보상이 아니라 LightFM 학습용 proxy reward" },
+        { a: "Environment",    b: "Qdrant `books_kure` 실제 도서 corpus",                            c: "LLM이 책을 생성하지 않도록 제한" },
+        { a: "Policy/Teacher", b: "ProfileReranker · Rule stage · ScoreFusion",                      c: "synthetic 후보 재점수화 및 final ranking" },
+        { a: "Replay/Training", b: "LightFM WARP artifact",                                          c: "offline candidate compressor (50 → 20)" },
+      ],
+    },
+    designConstraint: {
+      tone: "orange",
+      label: "환경 제약 (Hallucination 차단)",
+      body:
+        "LLM은 책 제목·ISBN·출판사를 직접 생성하지 않는다. 모든 후보 도서는 Qdrant `books_kure` 컬렉션에 존재하는 실제 도서 payload에서만 가져온다. environment action space를 실제 corpus로 한정해, persona hallucination이 아니라 실제 도서 위의 synthetic interaction이 되도록 했다.",
+    },
+    scale: [
+      { v: "1M",   label: "Source persona pool",   sub: "Nemotron-Personas-Korea" },
+      { v: "1,000", label: "Experiment subset",     sub: "stable persona_id 기반 JSONL" },
+      { v: "12",   label: "Reading profile fields", sub: "8 text · 4 numeric" },
+      { v: "63K",  label: "Synthetic events",      sub: "1,000 personas × 63 events" },
+    ],
+  },
+ 
+  // ── §04 — Ranking Policy Experiment Framework ────────────────────
+  ranking: {
+    headlineKo: "100개 후보를 5개로 줄이는 다단 퍼널과 실험 변수.",
+    headlineEn: "Multi-stage funnel with isolated experiment variables.",
+    lead: [
+      "LightFM은 최종 Top-5 생성기가 아니라, Qdrant/Rule이 만든 후보를 50개에서 20개로 줄이는 candidate compressor다. 최종 노출 순위는 GTE reranker, ScoreFusion, final stage에서 결정된다.",
+      "각 단계는 독립적으로 정책을 실험할 수 있도록 분리했다. training mode, 혼합 비율, candidate pool 크기 같은 변수를 단계별로 바꾸며 offline에서 비교한다.",
+    ],
+    funnel: [
+      { n: "100", label: "Qdrant Vector",      sub: "books_kure · 1024-dim",        tone: "blue"   },
+      { n: "50",  label: "Rule Filter",        sub: "ProfileReranker · 다중 신호",   tone: "teal"   },
+      { n: "20",  label: "LightFM / Profile",  sub: "WARP · 32d · candidate compressor", tone: "orange" },
+      { n: "5",   label: "ScoreFusion · GTE",  sub: "최종 fusion · fail-open",        tone: "green"  },
+    ],
+    roleSplit: {
+      head: ["구성", "역할"],
+      rows: [
+        { a: "Qdrant",         b: "1024-dim KURE 벡터로 도서 corpus 후보 100개 검색" },
+        { a: "Rule (Profile)", b: "ProfileReranker로 후보 100 → 50 압축 (audience_penalty, preferred_book 등 10+ 신호 프리셋)" },
+        { a: "LightFM",        b: "synthetic+real event 기반 implicit feedback 모델 — 50 → 20 candidate compressor" },
+        { a: "GTE reranker",   b: "후보 텍스트의 semantic relevance를 다시 평가" },
+        { a: "ScoreFusion",    b: "qdrant / rule / personalization / reranker 점수를 요청 단위로 정규화해 결합" },
+        { a: "Final stage",    b: "finalScore 기반 정렬 후 최종 노출 개수와 다양성 처리" },
+      ],
+    },
+    formula: {
+      title: "ScoreFusion — score_fusion_service.py",
+      lines: [
+        { kind: "main", text: "finalScore = w_qdrant·normalize(qdrantScore)" },
+        { kind: "sub",  text: "            + w_rule·normalize(ruleScore)" },
+        { kind: "sub",  text: "            + w_personalization·normalize(personalizationScore)" },
+        { kind: "sub",  text: "            + w_reranker·normalize(rerankerScore)" },
+        { kind: "blank" },
+        { kind: "note", text: "각 점수는 요청 단위로 min-max normalize 후 가중합한다." },
+        { kind: "note", text: "ruleScore = ProfileReranker / preScore 계열" },
+        { kind: "note", text: "personalizationScore = LightFM / profileVector 계열" },
+        { kind: "note", text: "rerankerScore = GTE reranker (응답 실패 시 0, fail-open)" },
+        { kind: "blank" },
+        { kind: "note", text: "가중치는 하나의 고정 상수 세트가 아니라, 요청 상태에 따라 달라지는 프리셋이다." },
+        { kind: "note", text: "→ guest 여부 · personalization 가능 여부 · reranker 가능 여부" },
+      ],
+    },
+    weightPresets: {
+      head: ["요청 상태", "reranker", "personalization", "rule", "qdrant"],
+      rows: [
+        { a: "guest + reranker available",                 b: "0.60", c: "—",    d: "0.10", e: "0.30" },
+        { a: "user + personalization + reranker",          b: "0.40", c: "0.25", d: "0.25", e: "0.10" },
+        { a: "user + personalization + no reranker",       b: "—",    c: "0.40", d: "0.40", e: "0.20" },
+      ],
+      caveat:
+        "값은 실제 서빙 코드 기준 가중치 예시다. 가중치 자체가 가설처럼 다뤄지는 정책 변수이며, 새 후보군이나 fallback 경로가 추가될 때마다 재조정된다.",
+    },
+    trainingModes: {
+      head: ["Mode", "내용", "사용 시점"],
+      rows: [
+        { a: "PERSONA_ONLY", b: "합성 이벤트만 사용",                       c: "서비스 초기, real 데이터 0건 (bootstrap)" },
+        { a: "HYBRID_LITE",  b: "real + synthetic 혼합, 비율 상한 적용",     c: "일반 운영 (default)" },
+        { a: "REAL_ONLY",    b: "real 이벤트만 사용",                        c: "real 데이터가 충분히 쌓인 이후" },
+      ],
+    },
+    mixCode: [
+      { l: "# train_lightfm.py — synthetic 비율 상한 계산", k: "cm" },
+      { l: "synthetic_max_ratio = 0.5  # default (HYBRID_LITE)", k: "" },
+      { l: "max_synthetic = int(real_count * ratio / (1.0 - ratio))", k: "kw" },
+      { l: "", k: "" },
+      { l: "# ratio=0.5  →  synthetic ≤ real_count  (50/50 상한)", k: "cm" },
+      { l: "# real_count == 0 →  synthetic 전량 허용 (bootstrap 지원)", k: "cm" },
+      { l: "", k: "" },
+      { l: "# real 이벤트에는 reward proxy 배수를 추가 적용한다", k: "cm" },
+      { l: "real_weight_multiplier = 2.0", k: "" },
+    ],
+    eventWeights: {
+      head: ["Event", "Weight", "비고"],
+      rows: [
+        { a: "READ_ADD",                       b: "1.0",   c: "기본 신호" },
+        { a: "FAVORITE_ADD · READING_ADD",     b: "3.0",   c: "적극적 관심" },
+        { a: "RATING_ADD · REVIEW_ADD",        b: "4.0",   c: "가장 강한 선호 신호" },
+        { a: "DISLIKE_ADD",                    b: "제외",   c: "LightFM 학습 제외 · ScoreFusion에서만 페널티" },
+        { a: "real event 추가 곱셈",           b: "× 2.0", c: "real_weight_multiplier — synthetic보다 실측을 신뢰" },
+      ],
+    },
+    experimentTable: {
+      head: ["실험 변수", "값", "의미"],
+      rows: [
+        { a: "training_mode",         b: "PERSONA_ONLY / HYBRID_LITE / REAL_ONLY", c: "real vs. synthetic 혼합 전략" },
+        { a: "synthetic_max_ratio",   b: "0.5 (default)",                          c: "혼합 비율 상한" },
+        { a: "real_weight_multiplier", b: "2.0",                                   c: "real event reward proxy 배수" },
+        { a: "LightFM loss",          b: "warp",                                   c: "implicit feedback pairwise ranking" },
+        { a: "components",            b: "32",                                     c: "user/item latent factor 차원" },
+        { a: "epochs · lr",           b: "10 · 0.03",                              c: "WARP 학습 하이퍼파라미터" },
+        { a: "candidate_eval_pool",   b: "50 → top-20",                            c: "후보 압축 평가 풀" },
+      ],
+    },
+    fallbackTable: {
+      head: ["범위", "Fallback reason"],
+      rows: [
+        {
+          a: "구현 확인 (lightfm_ranker.py 직접 확인)",
+          b: "LIGHTFM_DISABLED · MISSING_USER_ID · EMPTY_CANDIDATES · ARTIFACT_LOAD_FAILED · UNKNOWN_USER · NO_KNOWN_ITEMS · NUMPY_IMPORT_FAILED · PREDICT_FAILED",
+        },
+        {
+          a: "문서 계약 (artifact contract 문서 기준)",
+          b: "INSUFFICIENT_KNOWN_ITEMS — known item이 부족할 때 RULE_BASED로 내려가도록 설계상 분리한 사유 (구현 단정 아님)",
+        },
+      ],
+    },
+    sharedPool: {
+      tone: "blue",
+      label: "Shared pool 실험 (CF item overlap)",
+      body: [
+        "초기 synthetic event를 persona별로 완전히 독립 생성하면, 사용자 간 item overlap이 부족해 collaborative filtering이 사용자 간 관계를 학습하기 어렵다.",
+        "shared pool 실험에서는 개인 후보 70% · 같은 age/profile bucket 그룹 후보 25% · 전역 공유 후보 5%를 섞어, 비슷한 사용자끼리 일부 도서를 공유하도록 했다. 비율 자체보다, CF 학습 조건을 만들기 위한 설계 선택이라는 점이 중요하다.",
+      ],
+    },
+    evalBaseline: {
+      head: ["지표", "기준값", "비고"],
+      rows: [
+        { a: "TEST auc",                    b: "~= 0.785",    c: "기존 identity-only final 기준" },
+        { a: "TEST positive_hit_rate@10",   b: "~= 0.320",    c: "Top-10 내 positive 도서 포함률" },
+        { a: "TEST positive_precision@10",  b: "~= 0.0273",   c: "정밀도" },
+        { a: "TEST positive_recall@10",     b: "~= 0.06825",  c: "재현율" },
+        { a: "TEST dislike_hit_rate@10",    b: "~= 0.003",    c: "dislike 도서 노출률 (낮을수록 좋음)" },
+      ],
+      caveat:
+        "실측 결과로 단정하지 않는다. 모두 README_nemotron_rule_based_shared_pool_synthetic_events.md의 “기존 identity-only final 기준” 판단값이며, 운영 A/B 결과가 아니라 shared pool / training mode 비교를 위한 baseline reference로만 사용한다.",
+    },
+    metricQuestions: {
+      head: ["질문", "지표"],
+      rows: [
+        { a: "모델이 positive item을 구분하는가?",      b: "TEST auc" },
+        { a: "Top-10 안에 positive가 들어오는가?",       b: "positive_hit_rate@10" },
+        { a: "추천 리스트가 얼마나 낭비 없이 맞는가?",   b: "positive_precision@10" },
+        { a: "전체 positive 중 얼마나 회수하는가?",      b: "positive_recall@10" },
+        { a: "싫어한 책을 얼마나 피하는가?",             b: "dislike_hit_rate@10" },
+      ],
+    },
+    cases: [
+      {
+        n: "1",
+        title: "LightFM artifact에 user/item이 없는 경우",
+        before:
+          "artifact mapping에 없는 user/item이 들어오면 추천 파이프라인이 불안정해질 수 있다. 이를 예외로 끝내지 않고 fallback 사유를 남긴 뒤 RULE_BASED로 내려가는 방안을 정리했다.",
+        after:
+          "현재 구현에서 직접 확인되는 fallback은 UNKNOWN_USER · NO_KNOWN_ITEMS · ARTIFACT_LOAD_FAILED 등이다. known item 부족 시 RULE_BASED로 내려가는 INSUFFICIENT_KNOWN_ITEMS는 artifact contract 문서 기준으로만 분리해 표기한다.",
+      },
+      {
+        n: "2",
+        title: "GTE 입력 문서에 숫자 점수를 넣을 위험",
+        before:
+          "GTE reranker 입력 문서에 qdrant/rule/lightfm 점수를 넣는 방안을 검토했다. 다만 이 방식은 reranker가 도서 텍스트가 아니라 사전 점수에 과도하게 반응할 위험이 있었다.",
+        after:
+          "수치 정보가 도서 텍스트의 semantic signal을 오염시킬 위험이 있어 분리했다. GTE 입력 문서는 도서 텍스트 전용으로 두고, qdrant/rule/lightfm 점수는 ScoreFusion 단계에서만 반영한다.",
+      },
+      {
+        n: "3",
+        title: "GTE reranker timeout 대비",
+        before:
+          "GTE reranker는 외부 추론 단계이므로 timeout 가능성이 있다. reranker 장애가 추천 응답 전체를 막지 않도록 fail-open과 hard-fail 정책을 비교했다.",
+        after:
+          "GTE timeout 가능성에 대비해 fail-open을 선택했다. 응답하지 않으면 rerankerScore를 0으로 처리하고 ScoreFusion 단독으로 최종 순위를 결정한다.",
+      },
+    ],
+  },
+ 
+  // ── §05 — AI Experiment Design 역량 매핑 ─────────────────────────
+  experiment: {
+    headlineKo: "구조 대응으로 보는 실험 설계 역량.",
+    headlineEn: "Capability ↔ implementation mapping, not self-claim prose.",
+    lead: [
+      "“저는 이런 역량이 있습니다”라고 문장으로 말하는 대신, 게임 AI/모델 직무 역량과 북켓몬 구현 구조의 대응으로 보여준다.",
+      "각 행은 “이 역량”을 “이 코드/파일”이 어떻게 충족하는지를 1:1로 짚는다.",
+    ],
+    domainBridge: {
+      tone: "blue",
+      label: "도메인 ↔ 역량 번역",
+      body:
+        "이 프로젝트의 도메인은 책 추천이지만, 보여주려는 역량은 player/user model · action space · reward proxy · offline replay · policy comparison 설계 경험이다. 도메인 객체가 책일 뿐, 구조적으로는 사용자 상태와 아이템 선택, 보상 신호, 정책 비교를 다루는 시뮬레이터·밸런스 실험에 가깝다.",
+    },
+    capability: {
+      head: ["게임 AI/모델 직무 역량", "북켓몬 구현 구조", "핵심 파일"],
+      rows: [
+        {
+          a: "시뮬레이터 환경 구성",
+          b: "persona state · action event · reward proxy · Qdrant environment 구성",
+          c: "create_persona_subset.py · enrich_nemotron_persona_profiles.py · generate_nemotron_profile_synthetic_events.py",
+        },
+        {
+          a: "실험 설계",
+          b: "Tier 1/2/3 synthetic generation · shared pool ratio · training mode 비교",
+          c: "generate_nemotron_rule_based_synthetic_events.py · train_lightfm.py",
+        },
+        {
+          a: "밸런스 테스트 자동화",
+          b: "event weight · reward proxy multiplier · fallback threshold · ranking funnel 조정",
+          c: "train_lightfm.py · lightfm_ranker.py",
+        },
+        {
+          a: "Offline replay",
+          b: "synthetic/real event JSONL을 LightFM 학습·평가에 반복 투입",
+          c: "train_lightfm.py · *.jsonl artifact",
+        },
+        {
+          a: "Policy validation",
+          b: "ProfileReranker teacher · ScoreFusion · fallback reason logging",
+          c: "profile_reranker.py · score_fusion_service.py · lightfm_ranker.py",
+        },
+      ],
+    },
+    framing: {
+      tone: "blue",
+      label: "표현 경계",
+      body:
+        "본 프로젝트는 PPO·DQN·SAC 같은 강화학습 알고리즘을 직접 학습한 사례가 아니다. 따라서 “강화학습 기반 모델”이라고 쓰지 않는다. 대신 user state · action · reward proxy · policy를 분리해 offline에서 정책을 실험할 수 있게 만든 “강화학습형 실험 구조 (RL-style offline simulator/replay framework)”로 표기한다.",
+    },
+    loop: [
+      { n: "1", title: "Persona 가공",   body: "Nemotron 1M source pool → 1,000개 subset → CLOVA HCX-007 → 12-field reading profile" },
+      { n: "2", title: "Event 생성",      body: "action별 profile text → KURE 임베딩 → Qdrant 검색 → synthetic event log (≈ 63K)" },
+      { n: "3", title: "Teacher 재정렬",  body: "서비스 파이프라인의 ProfileReranker 기준으로 합성 후보 재점수화" },
+      { n: "4", title: "Offline 학습",    body: "LightFM WARP · training mode · synthetic_max_ratio · real_weight_multiplier 변경" },
+      { n: "5", title: "정책 검증",       body: "AUC · hit_rate · precision · recall · dislike_hit_rate를 baseline reference와 비교" },
+    ],
+    myRole: {
+      head: ["기여 범위", "내용"],
+      rows: [
+        { a: "문제 재정의",       b: "초기 데이터 부족 문제를 simulator/replay framework 문제로 재정의" },
+        { a: "Persona pipeline",  b: "Nemotron persona → reading profile → synthetic event 생성 흐름 설계" },
+        { a: "Training schema",   b: "synthetic/real event가 같은 학습 schema로 합류하는 training mode 전략 정리" },
+        { a: "Ranking funnel",    b: "Qdrant 100 → Rule 50 → LightFM/Profile 20 → ScoreFusion/GTE → Final 5 구조화" },
+        { a: "Boundary 문서화",   b: "RL-style 표현 경계와 구현/설계/미구현 범위 문서화" },
+      ],
+      caveat:
+        "기여 범위는 본인이 직접 설계·문서화한 항목만 포함한다. 구현 코드 작성·운영은 별도 팀 분담이며, 본 포트폴리오는 설계/실험 설계 관점에서 작성되었다.",
+    },
+  },
+ 
+  // ── §06 — Boundaries: 구현한 것과 아닌 것 ────────────────────────
+  boundaries: {
+    headlineKo: "구현한 것과, 구현하지 않은 것을 분리한다.",
+    headlineEn: "What this is, and what this is not.",
+    lead:
+      "포트폴리오에서 가장 쉽게 비약하는 지점이 “했다고 말한 것”과 “실제로 한 것”의 경계다. 이 섹션은 두 가지를 명시적으로 분리한다.",
+    isCallout: {
+      tone: "green",
+      label: "What this is",
+      bullets: [
+        "RL-style offline simulator / replay framework",
+        "Synthetic user state와 real book corpus 기반 interaction generator",
+        "LightFM candidate compressor (50 → 20) · 최종 생성기 아님",
+        "Production ProfileReranker를 teacher로 활용한 synthetic event 재정렬",
+        "Training mode · synthetic 비율 상한 · real weight multiplier의 offline 비교",
+        "ScoreFusion 가중치 프리셋과 fallback reason 설계",
+      ],
+    },
+    isNotCallout: {
+      tone: "orange",
+      label: "What this is not",
+      bullets: [
+        "PPO / DQN / SAC 같은 강화학습 알고리즘을 직접 학습한 사례 아님",
+        "실제 사용자 행동 로그를 Nvidia Dataset으로 대체한 것 아님 (Nvidia는 state pool)",
+        "LLM이 임의로 만든 책을 추천한 것 아님 (모든 도서는 Qdrant 실제 payload)",
+        "운영 A/B 테스트 결과 아님 (모든 수치는 offline baseline reference)",
+        "Nemotron persona가 실제 사용자 분포를 대표한다고 주장한 것 아님 (bootstrap용 initial state distribution)",
+        "“기획자가 수식을 직접 설계한다”라는 협업 서사가 본 프로젝트의 핵심이 아님",
+      ],
+    },
+    avoidTable: {
+      head: ["피해야 할 표현", "대체 표현 (실제 구현 범위)"],
+      rows: [
+        { a: "Nvidia 데이터셋으로 실제 사용자 행동을 확보했다",
+          b: "Nemotron 1M source pool에서 1,000개 persona subset을 만들어 초기 state 분포를 구성했다" },
+        { a: "강화학습 모델을 학습했다",
+          b: "user state · action · reward proxy · policy를 분리해 offline에서 정책을 실험했다" },
+        { a: "페르소나가 책을 직접 선택했다",
+          b: "스크립트가 persona state로 Qdrant 후보를 검색하고 event를 생성했다" },
+        { a: "GTE에 점수를 넣어 정렬 품질이 떨어졌다",
+          b: "수치 정보가 semantic signal을 오염시킬 위험이 있어 분리했다" },
+        { a: "GTE timeout으로 전체 응답이 실패했다",
+          b: "GTE timeout 가능성에 대비해 fail-open 정책을 선택했다" },
+        { a: "기획자가 직접 수식을 설계해 해석 비용 0",
+          b: "수식·가중치 프리셋·fallback reason을 코드와 동일한 식별자로 명세화했다" },
+        { a: "admin 콘솔에서 실험을 즉시 토글",
+          b: "training mode · ratio · multiplier를 train_lightfm.py 인자로 분리해 offline 비교" },
+      ],
+    },
+    techStack: {
+      head: ["계층", "실제 사용 기술"],
+      rows: [
+        { a: "Frontend",       b: "React · Vite" },
+        { a: "Backend",        b: "Spring Boot · Spring Session · CSRF" },
+        { a: "AI Service",     b: "FastAPI service package · CLOVA HCX-007 · KURE embedding · LightFM" },
+        { a: "Vector / Cache", b: "Qdrant `books_kure` · Redis" },
+        { a: "Reranker",       b: "GTE reranker (fail-open · ScoreFusion fallback)" },
+        { a: "Persona source", b: "nvidia/Nemotron-Personas-Korea (HuggingFace, 1M source · 1,000 subset)" },
+      ],
+    },
+    safeAnswer: {
+      tone: "blue",
+      label: "심사관에게 가장 안전한 한 줄 답변",
+      body:
+        "강화학습 모델을 학습한 프로젝트라기보다, 초기 real interaction이 없는 상황에서 synthetic user state와 real corpus를 결합해 추천 정책을 offline에서 반복 실험할 수 있게 만든 simulator/replay framework입니다.",
+    },
+  },
+ 
+  footer: {
+    set: "Pretendard · JetBrains Mono · Instrument Serif",
+    note:
+      "이 문서는 합성 유저 시뮬레이터와 랭킹 정책 실험 프레임워크 중심의 AI 시뮬레이션 포트폴리오입니다. 모든 수치는 설계값(spec) 또는 offline 기준값(baseline reference)으로 표기했으며, 운영 A/B 결과는 포함하지 않았습니다.",
+  },
+};
+ 
