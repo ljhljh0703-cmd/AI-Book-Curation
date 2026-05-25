@@ -1,0 +1,100 @@
+[
+  {
+    "scene": "01",
+    "target_duration_sec": 10.0,
+    "actual_duration_sec": 10.0,
+    "file": "narration_01.m4a",
+    "script": "Welcome to Bookmon. We introduce a premium, deep-tech curation service powered by data, rankings, and rationales."
+  },
+  {
+    "scene": "02",
+    "target_duration_sec": 12.0,
+    "actual_duration_sec": 12.0,
+    "file": "narration_02.m4a",
+    "script": "Why Bookmon? Traditional recommendations suffer from cold starts, slow convergence, and critical limitations like a three guest room cap and a strict fifteen-turn limit."
+  },
+  {
+    "scene": "03",
+    "target_duration_sec": 12.0,
+    "actual_duration_sec": 12.0,
+    "file": "narration_03.m4a",
+    "script": "To solve this, we bypass cold starts with pre-mapped weight profiles, converge preferences within fifteen turns, and filter out dialogue noise with semantic text segmenters."
+  },
+  {
+    "scene": "04",
+    "target_duration_sec": 12.0,
+    "actual_duration_sec": 12.0,
+    "file": "narration_04.m4a",
+    "script": "Experience our core interface: an interactive personalized recommendation feed that reads natural language intent and surfaces five highly aligned book candidates."
+  },
+  {
+    "scene": "05",
+    "target_duration_sec": 12.0,
+    "actual_duration_sec": 12.0,
+    "file": "narration_05.m4a",
+    "script": "Our backend blends three organic stages: dense vector retrieval, collaborative ranking, and real-time natural language reasoning."
+  },
+  {
+    "scene": "06",
+    "target_duration_sec": 18.0,
+    "actual_duration_sec": 18.0,
+    "file": "narration_06.m4a",
+    "script": "Let us explore our global system architecture. Spring Boot handles the robust backend, while Fast API, specialized embedding servers, rerankers, and Redis manage the high-performance AI layer."
+  },
+  {
+    "scene": "07",
+    "target_duration_sec": 15.0,
+    "actual_duration_sec": 15.0,
+    "file": "narration_07.m4a",
+    "script": "The curation funnel compresses one hundred candidate items step by step. Vector search, profile filtering, Light F M blending, and G T E reranking drive precise mathematical selection."
+  },
+  {
+    "scene": "08",
+    "target_duration_sec": 12.0,
+    "actual_duration_sec": 12.0,
+    "file": "narration_08.m4a",
+    "script": "Step one leverages KURE multilingual sentence embedding and Qdrant semantic search to translate natural language inputs into high-resolution coordinate maps."
+  },
+  {
+    "scene": "09",
+    "target_duration_sec": 15.0,
+    "actual_duration_sec": 15.0,
+    "file": "narration_09.m4a",
+    "script": "Step two blends Light F M collaborative filtering scores and real-time interaction rules, combining them in an eighty-to-twenty ratio for balanced hybrid recommendations."
+  },
+  {
+    "scene": "10",
+    "target_duration_sec": 15.0,
+    "actual_duration_sec": 15.0,
+    "file": "narration_10.m4a",
+    "script": "Step three performs final G T E reranking and guarantees high availability. If the primary G P U server fails, the gateway instantly falls back to a backup C P U N A S reranker."
+  },
+  {
+    "scene": "11",
+    "target_duration_sec": 12.0,
+    "actual_duration_sec": 12.0,
+    "file": "narration_11.m4a",
+    "script": "Our engineering benchmarks prove this hybrid flow. Valkey caching slashed average latency by eighty percent, while G T E fine-tuning boosted semantic alignment by forty-two percent."
+  },
+  {
+    "scene": "12",
+    "target_duration_sec": 18.0,
+    "actual_duration_sec": 18.0,
+    "file": "narration_12.m4a",
+    "script": "Bookmon tailors pathways for both guest users and regular members. Guest sessions run through temporary Redis memory, while members unlock permanent library sync and Nemotron multi-turn chats."
+  },
+  {
+    "scene": "13",
+    "target_duration_sec": 12.0,
+    "actual_duration_sec": 12.0,
+    "file": "narration_13.m4a",
+    "script": "To keep evolving, we are actively addressing key engineering limitations: optimizing Redis distributed locks, controlling feedback bias, and mitigating G P U overhead with long-term caching."
+  },
+  {
+    "scene": "14",
+    "target_duration_sec": 10.0,
+    "actual_duration_sec": 10.0,
+    "file": "narration_14.m4a",
+    "script": "Bookmon. Bringing the library closer to your mind, built on data, rankings, and rationales. Thank you."
+  }
+]
