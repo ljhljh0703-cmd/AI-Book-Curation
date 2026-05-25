@@ -1,0 +1,36 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+# 수정 포인트: 로컬 PC 전용 env가 Docker/K8s 이미지에 포함되어 운영 설정을 덮어쓰지 않도록 제외합니다.
+.env.local
+.env.*.local
+.venv/
+venv/
+models/
+.cache/
+*.log
+.DS_Store
+# training datasets / generated artifacts must be mounted at runtime, not baked into image
+data/
+artifacts/
+**/*.jsonl
+**/*.parquet
+**/*.tar
+**/*.tar.gz
+**/*.tgz
+**/*.zip
+**/*.joblib
+**/*.pkl
+**/*.pickle
+**/*.npz
+**/*.bin
+**/*.pt
+**/*.onnx
+**/colab_bundle*/
+**/lightfm_colab_bundle*/
+
+# 수정 포인트: 관리자 평가 기본 질의 파일은 런타임 평가 API에서 사용할 수 있어야 하므로 jsonl 전체 제외 규칙에서 예외 처리합니다.
+!script/evaluation/query_payload_eval_cases.example.jsonl

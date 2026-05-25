@@ -1,0 +1,3 @@
+새 미리보기 이미지를 이 폴더에 bookemon.png 이름으로 넣어주세요.
+최종 경로: frontend/public/bookemon.png
+그 다음 npm run build를 다시 실행해야 dist에 반영됩니다.

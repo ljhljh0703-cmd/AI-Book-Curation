@@ -1,0 +1,5 @@
+# Local/dev aggregate requirements.
+# 수정 포인트: Docker 빌드는 requirements-heavy.txt와 requirements-runtime.txt를
+# 별도 레이어로 설치하고, 로컬 개발에서는 이 파일 하나로 전체 설치가 가능합니다.
+-r requirements-heavy.txt
+-r requirements-runtime.txt

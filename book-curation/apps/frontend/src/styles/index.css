@@ -1,0 +1,350 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* 수정 포인트: Bootstrap 전역 스타일을 제거하고 shadcn/ui CSS 변수 기반 테마로 변경했다. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.875rem;
+  --background: oklch(0.985 0.01 248);
+  --foreground: oklch(0.18 0.035 256);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.035 256);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.035 256);
+  --primary: oklch(0.45 0.18 264);
+  --primary-foreground: oklch(0.985 0.01 248);
+  --secondary: oklch(0.94 0.025 250);
+  --secondary-foreground: oklch(0.25 0.045 256);
+  --muted: oklch(0.94 0.025 250);
+  --muted-foreground: oklch(0.55 0.045 256);
+  --accent: oklch(0.92 0.04 265);
+  --accent-foreground: oklch(0.25 0.045 256);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.985 0.01 248);
+  --border: oklch(0.86 0.025 250);
+  --input: oklch(0.86 0.025 250);
+  --ring: oklch(0.55 0.16 264);
+}
+
+.dark {
+  --background: oklch(0.16 0.03 256);
+  --foreground: oklch(0.96 0.012 248);
+  --card: oklch(0.21 0.035 256);
+  --card-foreground: oklch(0.96 0.012 248);
+  --popover: oklch(0.21 0.035 256);
+  --popover-foreground: oklch(0.96 0.012 248);
+  --primary: oklch(0.72 0.15 264);
+  --primary-foreground: oklch(0.16 0.03 256);
+  --secondary: oklch(0.28 0.04 256);
+  --secondary-foreground: oklch(0.96 0.012 248);
+  --muted: oklch(0.28 0.04 256);
+  --muted-foreground: oklch(0.7 0.04 250);
+  --accent: oklch(0.33 0.055 264);
+  --accent-foreground: oklch(0.96 0.012 248);
+  --destructive: oklch(0.64 0.2 25);
+  --destructive-foreground: oklch(0.96 0.012 248);
+  --border: oklch(0.32 0.04 256);
+  --input: oklch(0.32 0.04 256);
+  --ring: oklch(0.72 0.15 264);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply min-h-full scroll-smooth;
+  }
+
+  body {
+    @apply min-h-full bg-background text-foreground antialiased;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+}
+
+/**
+ * 온보딩 완료 화면의 알 클릭 팡파레 효과.
+ * React 상태값으로 클래스가 붙으면 알이 커졌다 돌아오고,
+ * 원형 링과 작은 점들이 바깥으로 퍼지는 연출을 만든다.
+ */
+
+ /**
+.egg-pop {
+  animation: egg-pop 520ms ease-out;
+}
+
+@keyframes egg-pop {
+  0% {
+    transform: scale(1);
+  }
+
+  35% {
+    transform: scale(1.18) rotate(-4deg);
+  }
+
+  70% {
+    transform: scale(0.96) rotate(3deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.fanfare-ring {
+  position: absolute;
+  inset: 50%;
+  width: 120px;
+  height: 120px;
+  border: 2px solid hsl(var(--primary));
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+  animation: fanfare-ring 700ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes fanfare-ring {
+  0% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.2);
+  }
+}
+
+.fanfare-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: hsl(var(--primary));
+  pointer-events: none;
+  animation: fanfare-dot 720ms ease-out forwards;
+}
+
+.fanfare-dot-1 {
+  --x: -86px;
+  --y: -72px;
+}
+
+.fanfare-dot-2 {
+  --x: 82px;
+  --y: -66px;
+}
+
+.fanfare-dot-3 {
+  --x: -96px;
+  --y: 24px;
+}
+
+.fanfare-dot-4 {
+  --x: 92px;
+  --y: 28px;
+}
+
+.fanfare-dot-5 {
+  --x: -42px;
+  --y: 88px;
+}
+
+.fanfare-dot-6 {
+  --x: 46px;
+  --y: 86px;
+}
+
+@keyframes fanfare-dot {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1.4);
+  }
+} */
+
+/**
+ * 온보딩 완료 화면의 축하 장식 효과.
+ * 이미지 시안처럼 알 주변에 리본과 조각이 퍼진 느낌을 CSS만으로 표현한다.
+ */
+/* 
+.confetti {
+  position: absolute;
+  display: block;
+  border-radius: 9999px;
+  opacity: 0.9;
+  animation: confetti-float 2.4s ease-in-out infinite;
+}
+
+.confetti-1 {
+  left: 20%;
+  top: 38%;
+  width: 70px;
+  height: 8px;
+  background: #ef4444;
+  transform: rotate(18deg);
+}
+
+.confetti-2 {
+  left: 26%;
+  top: 18%;
+  width: 48px;
+  height: 8px;
+  background: #5eead4;
+  transform: rotate(32deg);
+}
+
+.confetti-3 {
+  right: 23%;
+  top: 22%;
+  width: 56px;
+  height: 8px;
+  background: #f97316;
+  transform: rotate(-28deg);
+}
+
+.confetti-4 {
+  right: 18%;
+  top: 48%;
+  width: 64px;
+  height: 8px;
+  background: #2563eb;
+  transform: rotate(35deg);
+}
+
+.confetti-5 {
+  left: 30%;
+  bottom: 22%;
+  width: 42px;
+  height: 8px;
+  background: #f9a8d4;
+  transform: rotate(45deg);
+}
+
+.confetti-6 {
+  right: 32%;
+  bottom: 24%;
+  width: 50px;
+  height: 8px;
+  background: #7dd3fc;
+  transform: rotate(80deg);
+}
+
+.confetti-7 {
+  left: 35%;
+  top: 28%;
+  width: 10px;
+  height: 10px;
+  background: #fb923c;
+}
+
+.confetti-8 {
+  right: 35%;
+  top: 26%;
+  width: 10px;
+  height: 10px;
+  background: #f472b6;
+}
+
+.confetti-9 {
+  left: 24%;
+  bottom: 34%;
+  width: 12px;
+  height: 12px;
+  background: #f9a8d4;
+}
+
+.confetti-10 {
+  right: 25%;
+  bottom: 36%;
+  width: 12px;
+  height: 12px;
+  background: #99f6e4;
+}
+
+@keyframes confetti-float {
+  0% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -8px;
+  }
+
+  100% {
+    translate: 0 0;
+  }
+} */
+/*
+ * Capacitor Android 앱 전용 보정입니다.
+ * 기존 웹 디자인은 유지하되, WebView에서 safe-area/터치 하이라이트/가로 밀림 문제를 줄입니다.
+ */
+@layer base {
+  html.bookemon-native-app,
+  html.bookemon-native-app body,
+  html.bookemon-native-app #root {
+    min-height: 100dvh;
+  }
+
+  html.bookemon-native-app {
+    background: var(--background);
+    overscroll-behavior-y: none;
+  }
+
+  html.bookemon-native-app body {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    padding-bottom: env(safe-area-inset-bottom);
+    touch-action: manipulation;
+  }
+
+  html.bookemon-native-app header {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  html.bookemon-native-app input,
+  html.bookemon-native-app textarea,
+  html.bookemon-native-app select {
+    font-size: 16px;
+  }
+}

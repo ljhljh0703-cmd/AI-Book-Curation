@@ -1,0 +1,10 @@
+# Dependencies for Nemotron persona streaming and Qdrant read-only synthetic event generation.
+# 수정 포인트: Windows 로컬 데이터 생성 단계에서는 native extension인 LightFM을 설치하지 않도록 분리합니다.
+# LightFM 학습은 requirements-lightfm-training.txt 또는 Colab/WSL/Linux 환경에서 별도로 진행하세요.
+datasets>=2.19.0,<5.0.0
+qdrant-client==1.12.1
+python-dotenv==1.0.1
+requests==2.32.3
+numpy==1.26.4
+scipy==1.13.1
+joblib==1.4.2

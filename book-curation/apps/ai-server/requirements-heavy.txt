@@ -1,0 +1,8 @@
+# Heavy scientific / model-training dependencies.
+# 수정 포인트: 이 파일은 빌드 시간이 긴 의존성만 모읍니다.
+# Dockerfile에서 별도 레이어로 설치하므로, Redis/FastAPI 같은 runtime 의존성만 바뀔 때
+# numpy/scipy/lightfm 레이어가 다시 빌드되지 않습니다.
+numpy==1.26.4
+scipy==1.13.1
+joblib==1.4.2
+lightfm==1.17

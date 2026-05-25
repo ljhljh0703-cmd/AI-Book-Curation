@@ -1,0 +1,22 @@
+services:
+  book-postgres:
+    image: postgis/postgis:17-3.5
+    container_name: book-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: book_curation
+      POSTGRES_USER: book_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Seoul
+    ports:
+      - "15432:5432"
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+      - ./postgres/backup:/backup
+    networks:
+      - book-net
+
+networks:
+  book-net:
+    name: book-net

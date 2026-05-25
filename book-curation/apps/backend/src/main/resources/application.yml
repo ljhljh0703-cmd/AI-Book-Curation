@@ -1,0 +1,247 @@
+spring:
+  config:
+    import: optional:classpath:application-oauth.yml
+
+  application:
+    name: book-curation-api
+  
+  
+  servlet:
+    multipart:
+      # 수정 포인트: 캐릭터 이미지 업로드 정책은 파일당 2MB입니다.
+      # Spring Boot 기본값 1MB를 그대로 두면 컨트롤러 검증 전에 MaxUploadSizeExceededException이 발생합니다.
+      max-file-size: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE:2MB}
+      # 수정 포인트: multipart/form-data 오버헤드를 고려해 요청 전체 제한은 파일 제한보다 조금 크게 둡니다.
+      max-request-size: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE:3MB}
+
+  datasource:
+    # 수정 포인트: NAS PostgreSQL Docker 포트 기준. 운영에서는 환경변수로 교체하세요.
+    url: ${DB_URL:jdbc:postgresql://192.168.0.10:15432/book_curation}
+    username: ${DB_USERNAME:book_user}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
+
+  data:
+    redis:
+      # 수정 포인트: Redis 호환 Valkey 단일 Pod를 우선 사용합니다. 인증값은 운영 Secret/env로 주입하세요.
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:2s}
+
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
+
+  jpa:
+    hibernate:
+      # 수정 포인트: 운영/팀 프로젝트에서는 validate 또는 none 권장. 테이블은 SQL로 직접 관리합니다.
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: ${DB_SCHEMA:book}
+        format_sql: ${HIBERNATE_FORMAT_SQL:true}
+
+server:
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      timeout: ${SESSION_TIMEOUT:12h}
+      cookie:
+        http-only: true
+        # CSRF 수정: 기본은 로컬/동일 사이트 개발 기준입니다. prod에서는 application-prod.yml이 덮어씁니다.
+        same-site: ${SESSION_COOKIE_SAME_SITE:lax}
+        secure: ${SESSION_COOKIE_SECURE:false}
+
+logging:
+  level:
+    root: INFO
+    com.taeo.bookcuration: DEBUG
+    org.springframework.security: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY:INFO}
+    org.springframework.security.oauth2: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"
+
+app:
+  auth:
+    password-reset:
+      code-expire-minutes: ${PASSWORD_RESET_CODE_EXPIRE_MINUTES:10}
+      max-verify-attempts: ${PASSWORD_RESET_MAX_VERIFY_ATTEMPTS:5}
+      mail-from: ${PASSWORD_RESET_MAIL_FROM:${MAIL_USERNAME:no-reply@bookemon.local}}
+      mail-subject: "${PASSWORD_RESET_MAIL_SUBJECT:[Bookemon] 비밀번호 재설정 인증번호}"
+    dormant:
+      days: ${DORMANT_DAYS:180}
+      cron: ${DORMANT_CRON:0 0 3 * * *}
+    dormant-release:
+      code-expire-minutes: ${DORMANT_RELEASE_CODE_EXPIRE_MINUTES:10}
+      max-verify-attempts: ${DORMANT_RELEASE_MAX_VERIFY_ATTEMPTS:5}
+      mail-from: ${DORMANT_RELEASE_MAIL_FROM:${MAIL_USERNAME:no-reply@bookemon.local}}
+      mail-subject: "${DORMANT_RELEASE_MAIL_SUBJECT:[Bookemon] 휴면 해제 인증번호}"
+
+  redis:
+    # 수정 포인트: 로그인 사용자의 핵심 데이터는 PostgreSQL을 source of truth로 유지하고, Valkey는 TTL 캐시/락/비로그인 임시 저장소로만 사용합니다.
+    enabled: ${REDIS_ENABLED:false}
+    key-prefix: ${REDIS_KEY_PREFIX:book-curation}
+    guest-chat-ttl: ${GUEST_CHAT_TTL_SECONDS:86400}s
+    guest-duplicate-lock-ttl: ${GUEST_DUPLICATE_LOCK_TTL_SECONDS:20}s
+    recommendation-cache-ttl: ${RECOMMENDATION_CACHE_TTL_SECONDS:600}s
+    qdrant-search-cache-ttl: ${QDRANT_SEARCH_CACHE_TTL_SECONDS:600}s
+    gte-rerank-cache-ttl: ${GTE_RERANK_CACHE_TTL_SECONDS:600}s
+    admin-job-lock-ttl: ${ADMIN_JOB_LOCK_TTL_SECONDS:21600}s
+
+  cors:
+    allowed-origins:
+      # CSRF 수정: NAS 기본 프론트 Origin은 http://192.168.0.10:39080 입니다. 필요하면 FRONTEND_ORIGIN으로 덮어쓰세요.
+      - ${FRONTEND_ORIGIN:http://192.168.0.10:39080}
+      - http://localhost:5173
+      - http://localhost:3000
+  security:
+    csrf:
+      cookie:
+        # CSRF 수정: 기본은 HTTP/IP 배포 기준입니다. HTTPS 도메인 배포 시 prod에서 none/true로 변경하세요.
+        same-site: ${CSRF_COOKIE_SAME_SITE:lax}
+        secure: ${CSRF_COOKIE_SECURE:false}
+    rate-limit:
+      # 수정 포인트: Cloudflare Free 플랜의 rule 수 제한을 보완하기 위해 백엔드에서 주요 API별 요청 수를 제한합니다.
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      # 수정 포인트: Cloudflare Tunnel 뒤에서는 CF-Connecting-IP / X-Forwarded-For를 실제 사용자 IP 판단에 사용합니다.
+      trust-proxy-headers: ${RATE_LIMIT_TRUST_PROXY_HEADERS:true}
+      max-cached-request-body-bytes: ${RATE_LIMIT_MAX_CACHED_REQUEST_BODY_BYTES:8192}
+      cleanup-interval: ${RATE_LIMIT_CLEANUP_INTERVAL:5m}
+      login:
+        capacity: ${RATE_LIMIT_LOGIN_CAPACITY:5}
+        window: ${RATE_LIMIT_LOGIN_WINDOW:1m}
+      signup:
+        capacity: ${RATE_LIMIT_SIGNUP_CAPACITY:3}
+        window: ${RATE_LIMIT_SIGNUP_WINDOW:10m}
+      email-availability:
+        capacity: ${RATE_LIMIT_EMAIL_AVAILABILITY_CAPACITY:30}
+        window: ${RATE_LIMIT_EMAIL_AVAILABILITY_WINDOW:1m}
+      verification-send:
+        capacity: ${RATE_LIMIT_VERIFICATION_SEND_CAPACITY:3}
+        window: ${RATE_LIMIT_VERIFICATION_SEND_WINDOW:10m}
+      verification-confirm:
+        capacity: ${RATE_LIMIT_VERIFICATION_CONFIRM_CAPACITY:10}
+        window: ${RATE_LIMIT_VERIFICATION_CONFIRM_WINDOW:10m}
+      social-signup-complete:
+        capacity: ${RATE_LIMIT_SOCIAL_SIGNUP_COMPLETE_CAPACITY:3}
+        window: ${RATE_LIMIT_SOCIAL_SIGNUP_COMPLETE_WINDOW:10m}
+      onboarding-book-search:
+        capacity: ${RATE_LIMIT_ONBOARDING_BOOK_SEARCH_CAPACITY:20}
+        window: ${RATE_LIMIT_ONBOARDING_BOOK_SEARCH_WINDOW:1m}
+      chat-session-create:
+        capacity: ${RATE_LIMIT_CHAT_SESSION_CREATE_CAPACITY:20}
+        window: ${RATE_LIMIT_CHAT_SESSION_CREATE_WINDOW:1m}
+      chat-message:
+        capacity: ${RATE_LIMIT_CHAT_MESSAGE_CAPACITY:10}
+        window: ${RATE_LIMIT_CHAT_MESSAGE_WINDOW:1m}
+      # 수정 포인트: 비로그인 추천 API는 로그인 채팅보다 더 낮은 분당/일일 request 제한을 별도로 둡니다.
+      guest-chat-message:
+        capacity: ${GUEST_RATE_LIMIT_PER_MINUTE:${RATE_LIMIT_GUEST_CHAT_MESSAGE_CAPACITY:8}}
+        window: ${RATE_LIMIT_GUEST_CHAT_MESSAGE_WINDOW:1m}
+      guest-chat-daily:
+        capacity: ${GUEST_RATE_LIMIT_PER_DAY:${RATE_LIMIT_GUEST_CHAT_DAILY_CAPACITY:40}}
+        window: ${RATE_LIMIT_GUEST_CHAT_DAILY_WINDOW:1d}
+      book-availability:
+        capacity: ${RATE_LIMIT_BOOK_AVAILABILITY_CAPACITY:10}
+        window: ${RATE_LIMIT_BOOK_AVAILABILITY_WINDOW:1m}
+      admin-image-upload:
+        capacity: ${RATE_LIMIT_ADMIN_IMAGE_UPLOAD_CAPACITY:5}
+        window: ${RATE_LIMIT_ADMIN_IMAGE_UPLOAD_WINDOW:1m}
+  oauth2:
+    # 수정 포인트: 소셜 로그인 완료 시 기존 계정은 /oauth/success, 최초 소셜 회원가입은 /signup 으로 이동합니다.
+    success-redirect-url: ${OAUTH2_SUCCESS_REDIRECT_URL:http://localhost:5173/oauth/success}
+    signup-redirect-url: ${OAUTH2_SIGNUP_REDIRECT_URL:http://localhost:5173/signup?socialPending=true}
+    failure-redirect-url: ${OAUTH2_FAILURE_REDIRECT_URL:http://localhost:5173/login?socialError=true}
+
+  ai-server:
+    # 수정 포인트: backend 컨테이너가 K3s 내부 Service DNS로 FastAPI ai-server를 호출합니다.
+    base-url: ${AI_SERVER_BASE_URL:http://book-curation-ai:8001}
+    connect-timeout: ${AI_SERVER_CONNECT_TIMEOUT:3s}
+    read-timeout: ${AI_SERVER_READ_TIMEOUT:75s}
+    # 수정 포인트: ai-server 내부 API 보호용 공유키입니다. 비워두면 기존처럼 헤더를 보내지 않습니다.
+    internal-api-key: ${AI_INTERNAL_API_KEY:}
+    # 수정 포인트: LightFM 학습 호출은 최대 2시간까지 걸릴 수 있으므로 일반 추천 API timeout과 분리합니다.
+    lightfm-training-read-timeout: ${AI_SERVER_LIGHTFM_TRAINING_READ_TIMEOUT:7260s}
+
+  query-evaluation-runner:
+    # 수정 포인트: true이면 관리자 평가 실행은 NAS ai-server pod 직접 실행 대신 local runner HTTP API로 위임합니다.
+    enabled: ${QUERY_EVAL_LOCAL_RUNNER_ENABLED:false}
+    base-url: ${QUERY_EVAL_LOCAL_RUNNER_BASE_URL:}
+    api-key: ${QUERY_EVAL_LOCAL_RUNNER_API_KEY:}
+    connect-timeout: ${QUERY_EVAL_LOCAL_RUNNER_CONNECT_TIMEOUT:3s}
+    read-timeout: ${QUERY_EVAL_LOCAL_RUNNER_READ_TIMEOUT:30s}
+
+  lightfm:
+    training:
+      enabled: ${LIGHTFM_TRAINING_ENABLED:true}
+      cron: "${LIGHTFM_TRAINING_CRON:0 0 3 * * SUN}"
+      artifact-root: ${LIGHTFM_ARTIFACT_ROOT:/app/artifacts/lightfm}
+      dataset-dir: ${LIGHTFM_DATASET_DIR:/app/artifacts/lightfm/datasets}
+      real-dataset-dir: ${LIGHTFM_REAL_DATASET_DIR:/app/artifacts/lightfm/datasets/real}
+      persona-dataset-dir: ${LIGHTFM_PERSONA_DATASET_DIR:/app/artifacts/lightfm/datasets/persona}
+      dataset-manifest-dir: ${LIGHTFM_DATASET_MANIFEST_DIR:/app/artifacts/lightfm/datasets/manifests}
+      work-dir: ${LIGHTFM_WORK_DIR:/app/artifacts/lightfm/work}
+      artifact-versions-dir: ${LIGHTFM_ARTIFACT_VERSIONS_DIR:/app/artifacts/lightfm/versions}
+      current-artifact-dir: ${LIGHTFM_ARTIFACT_DIR:/app/artifacts/lightfm/current}
+      log-dir: ${LIGHTFM_TRAINING_LOG_DIR:/app/artifacts/lightfm/logs}
+      num-threads: ${LIGHTFM_TRAINING_NUM_THREADS:1}
+      epochs: ${LIGHTFM_TRAINING_EPOCHS:10}
+      no-components: ${LIGHTFM_TRAINING_NO_COMPONENTS:32}
+      max-sampled: ${LIGHTFM_TRAINING_MAX_SAMPLED:10}
+      learning-rate: ${LIGHTFM_TRAINING_LEARNING_RATE:0.03}
+      loss: ${LIGHTFM_TRAINING_LOSS:warp}
+      timeout-seconds: ${LIGHTFM_TRAINING_TIMEOUT_SECONDS:7200}
+      artifact-retention-count: ${LIGHTFM_ARTIFACT_RETENTION_COUNT:3}
+      recent-months: ${LIGHTFM_TRAINING_RECENT_MONTHS:6}
+      min-positive-events-per-user: ${LIGHTFM_TRAINING_MIN_POSITIVE_EVENTS_PER_USER:1}
+      max-rows-per-source: ${LIGHTFM_TRAINING_MAX_ROWS_PER_SOURCE:50000}
+      synthetic-max-ratio: ${LIGHTFM_TRAINING_SYNTHETIC_MAX_RATIO:0.5}
+      real-weight-multiplier: ${LIGHTFM_TRAINING_REAL_WEIGHT_MULTIPLIER:2.0}
+      training-mode: ${LIGHTFM_TRAINING_MODE:HYBRID_LITE}
+
+  file-storage:
+    # 수정 포인트: K3s에서는 이 컨테이너 경로를 NAS hostPath/PVC로 마운트해야 업로드 이미지가 pod 재시작 후에도 유지됩니다.
+    root-path: ${APP_FILE_STORAGE_ROOT:/app/uploads}
+    public-url-prefix: ${APP_FILE_PUBLIC_URL_PREFIX:/uploads}
+    character-image:
+      max-size-bytes: ${CHARACTER_IMAGE_MAX_SIZE_BYTES:2097152}
+      min-width: ${CHARACTER_IMAGE_MIN_WIDTH:128}
+      min-height: ${CHARACTER_IMAGE_MIN_HEIGHT:128}
+      max-width: ${CHARACTER_IMAGE_MAX_WIDTH:1024}
+      max-height: ${CHARACTER_IMAGE_MAX_HEIGHT:1024}
+      min-aspect-ratio: ${CHARACTER_IMAGE_MIN_ASPECT_RATIO:0.8}
+      max-aspect-ratio: ${CHARACTER_IMAGE_MAX_ASPECT_RATIO:1.25}
+      allowed-content-types:
+        - image/png
+        - image/jpeg
+        - image/gif
+
+data4library:
+  base-url: ${DATA4LIBRARY_BASE_URL:http://data4library.kr}
+  auth-key: ${DATA4LIBRARY_AUTH_KEY:}
+  page-size: ${DATA4LIBRARY_PAGE_SIZE:100}
+
+aladin:
+  # 수정 포인트: 온보딩 도서 검색은 프론트가 TTBKey를 직접 들고 있지 않도록 backend에서 알라딘 API를 프록시합니다.
+  base-url: ${ALADIN_BASE_URL:http://www.aladin.co.kr}
+  ttb-key: ${ALADIN_TTB_KEY:}
+  search-target: ${ALADIN_SEARCH_TARGET:Book}
+  output: ${ALADIN_OUTPUT:JS}
+  version: ${ALADIN_VERSION:20131101}
+  max-results: ${ALADIN_MAX_RESULTS:10}

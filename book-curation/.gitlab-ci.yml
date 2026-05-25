@@ -1,0 +1,884 @@
+spec:
+  inputs:
+    deploy-service:
+      description: "Service to deploy when running a manual deploy-only pipeline."
+      default: "none"
+      options:
+        - "none"
+        - "ai-server"
+    deploy-target:
+      description: "Deployment target for a manual deploy-only pipeline."
+      default: "none"
+      options:
+        - "none"
+        - "nas"
+        - "aws"
+    deploy-image-override:
+      description: "Existing image to deploy instead of the current commit tag."
+      default: ""
+---
+
+variables:
+  FF_TIMESTAMPS: "false"
+  K8S_NAMESPACE: "book-curation-dev"
+  KUBECTL_IMAGE: "registry.k8s.io/kubectl:v1.30.0"
+  DOCKER_BUILDKIT: "1"
+  K8S_ROLLOUT_TIMEOUT: "300s"
+  AUTO_ROLLOUT_UNDO: "true"
+  DEPLOY_SERVICE: "$[[ inputs.deploy-service ]]"
+  DEPLOY_TARGET: "$[[ inputs.deploy-target ]]"
+  DEPLOY_IMAGE_OVERRIDE: "$[[ inputs.deploy-image-override ]]"
+
+# Runner tag policy
+# - dev branch: NAS runner only
+# - aws-dev / team/* branches: AWS runner only
+# Configure GitLab Runner tags as follows:
+# - NAS runner: book-curation-api
+# - AWS runner: book-curation-aws-build, book-curation-aws-deploy
+# CI changes are included in service rules while CI/CD is being stabilized.
+# Remove .gitlab-ci.yml from service changes later if validation-only behavior is desired.
+
+default:
+  before_script:
+    - export TZ=Asia/Seoul
+    - 'echo "[KST] job start: $(date ''+%Y-%m-%d %H:%M:%S %Z'')"'
+
+stages:
+  - validate
+  - build
+  - deploy
+
+validate_ci_config_nas_dev:
+  stage: validate
+  image: alpine:3.20
+  tags:
+    - book-curation-api
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      when: always
+    - when: never
+  script:
+    - echo "[VALIDATE] NAS dev pipeline"
+    - echo "[VALIDATE] dev branch will build on NAS runner and deploy to NAS k3s"
+
+validate_ci_config_aws_dev:
+  stage: validate
+  image: alpine:3.20
+  tags:
+    - book-curation-aws-build
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      when: always
+    - when: never
+  script:
+    - echo "[VALIDATE] AWS team dev pipeline"
+    - echo "[VALIDATE] aws-dev/team/* branches will build and deploy on AWS runner"
+
+.build_image_template:
+  stage: build
+  image: docker:27-cli
+  before_script:
+    - export TZ=Asia/Seoul
+    - 'echo "[KST] job start: $(date ''+%Y-%m-%d %H:%M:%S %Z'')"'
+    - docker version
+    - 'echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin'
+    - export BUILDX_BUILDER_NAME="book-curation-${CI_PROJECT_ID:-local}-builder"
+    - docker buildx version
+    - docker buildx inspect "$BUILDX_BUILDER_NAME" >/dev/null 2>&1 || docker buildx create --name "$BUILDX_BUILDER_NAME" --driver docker-container --use
+    - docker buildx use "$BUILDX_BUILDER_NAME"
+    - docker buildx inspect --bootstrap
+    - export IMAGE_TAG="${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}"
+    - export IMAGE_LATEST_TAG="${CI_COMMIT_REF_SLUG}-latest"
+    - echo "[IMAGE TAG] $IMAGE_TAG"
+
+.nas_build_rules_backend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/backend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_build_rules_backend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/backend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/backend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.nas_build_rules_frontend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/frontend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_build_rules_frontend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/frontend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/frontend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.nas_build_rules_ai_server:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/ai-server/**/*
+        - packages/prompts/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_build_rules_ai_server:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/ai-server/**/*
+        - packages/prompts/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/ai-server/**/*
+        - packages/prompts/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.nas_build_rules_gte:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/gte-reranker-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_build_rules_gte:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/gte-reranker-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/gte-reranker-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.nas_build_rules_kure:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/kure-embedding-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_build_rules_kure:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/kure-embedding-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/kure-embedding-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+build_backend_image_nas_dev:
+  extends:
+    - .build_image_template
+    - .nas_build_rules_backend
+  tags:
+    - book-curation-api
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/backend"
+  script:
+    - echo "[BUILD][NAS] backend image"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/backend/Dockerfile \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/backend
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_backend_image_aws_dev:
+  extends:
+    - .build_image_template
+    - .aws_build_rules_backend
+  tags:
+    - book-curation-aws-build
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/backend"
+  script:
+    - echo "[BUILD][AWS] backend image"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/backend/Dockerfile \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/backend
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_frontend_image_nas_dev:
+  extends:
+    - .build_image_template
+    - .nas_build_rules_frontend
+  tags:
+    - book-curation-api
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/frontend"
+  script:
+    - echo "[BUILD][NAS] frontend image"
+    - export VITE_USE_RELATIVE_API="${VITE_USE_RELATIVE_API:-true}"
+    - export VITE_API_BASE_URL="${VITE_API_BASE_URL:-}"
+    - export VITE_OAUTH_BASE_URL="${VITE_OAUTH_BASE_URL:-}"
+    - export VITE_PUBLIC_SITE_URL="${VITE_PUBLIC_SITE_URL:-https://book.taeo-dev.com}"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/frontend/Dockerfile \
+        --build-arg VITE_USE_RELATIVE_API="$VITE_USE_RELATIVE_API" \
+        --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" \
+        --build-arg VITE_OAUTH_BASE_URL="$VITE_OAUTH_BASE_URL" \
+        --build-arg VITE_PUBLIC_SITE_URL="$VITE_PUBLIC_SITE_URL" \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/frontend
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_frontend_image_aws_dev:
+  extends:
+    - .build_image_template
+    - .aws_build_rules_frontend
+  tags:
+    - book-curation-aws-build
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/frontend"
+  script:
+    - echo "[BUILD][AWS] frontend image"
+    - export VITE_USE_RELATIVE_API="${VITE_USE_RELATIVE_API:-true}"
+    - export VITE_API_BASE_URL="${VITE_API_BASE_URL:-}"
+    - export VITE_OAUTH_BASE_URL="${VITE_OAUTH_BASE_URL:-}"
+    - export VITE_PUBLIC_SITE_URL="${VITE_PUBLIC_SITE_URL:-https://book.taeo-dev.com}"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/frontend/Dockerfile \
+        --build-arg VITE_USE_RELATIVE_API="$VITE_USE_RELATIVE_API" \
+        --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" \
+        --build-arg VITE_OAUTH_BASE_URL="$VITE_OAUTH_BASE_URL" \
+        --build-arg VITE_PUBLIC_SITE_URL="$VITE_PUBLIC_SITE_URL" \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/frontend
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_ai_server_image_nas_dev:
+  extends:
+    - .build_image_template
+    - .nas_build_rules_ai_server
+  tags:
+    - book-curation-api
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/ai-server"
+  script:
+    - echo "[BUILD][NAS] ai-server image"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/ai-server/Dockerfile \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/ai-server
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_ai_server_image_aws_dev:
+  extends:
+    - .build_image_template
+    - .aws_build_rules_ai_server
+  tags:
+    - book-curation-aws-build
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/ai-server"
+  script:
+    - echo "[BUILD][AWS] ai-server image"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/ai-server/Dockerfile \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/ai-server
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_gte_reranker_server_image_nas_dev:
+  extends:
+    - .build_image_template
+    - .nas_build_rules_gte
+  tags:
+    - book-curation-api
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/gte-reranker-server"
+  script:
+    - echo "[BUILD][NAS] gte-reranker-server image"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/gte-reranker-server/Dockerfile \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/gte-reranker-server
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_gte_reranker_server_image_aws_dev:
+  extends:
+    - .build_image_template
+    - .aws_build_rules_gte
+  tags:
+    - book-curation-aws-build
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/gte-reranker-server"
+  script:
+    - echo "[BUILD][AWS] gte-reranker-server image"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/gte-reranker-server/Dockerfile \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/gte-reranker-server
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_kure_embedding_server_image_nas_dev:
+  extends:
+    - .build_image_template
+    - .nas_build_rules_kure
+  tags:
+    - book-curation-api
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/kure-embedding-server"
+  script:
+    - echo "[BUILD][NAS] kure-embedding-server image"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/kure-embedding-server/Dockerfile \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/kure-embedding-server
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+build_kure_embedding_server_image_aws_dev:
+  extends:
+    - .build_image_template
+    - .aws_build_rules_kure
+  tags:
+    - book-curation-aws-build
+  variables:
+    IMAGE_NAME: "$CI_REGISTRY_IMAGE/kure-embedding-server"
+  script:
+    - echo "[BUILD][AWS] kure-embedding-server image"
+    - |
+      docker buildx build \
+        --cache-from "type=registry,ref=$IMAGE_NAME:buildcache" \
+        --cache-to "type=registry,ref=$IMAGE_NAME:buildcache,mode=min" \
+        -f apps/kure-embedding-server/Dockerfile \
+        -t "$IMAGE_NAME:$IMAGE_TAG" \
+        -t "$IMAGE_NAME:$IMAGE_LATEST_TAG" \
+        --push \
+        apps/kure-embedding-server
+    - echo "[DONE] $IMAGE_NAME:$IMAGE_TAG pushed"
+
+.deploy_k3s_template:
+  stage: deploy
+  image: docker:27-cli
+  before_script:
+    - export TZ=Asia/Seoul
+    - 'echo "[KST] job start: $(date ''+%Y-%m-%d %H:%M:%S %Z'')"'
+    - docker version
+    - 'echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin'
+    - export EFFECTIVE_K8S_NAMESPACE="${TARGET_K8S_NAMESPACE:-${K8S_NAMESPACE:-book-curation-dev}}"
+    - export EFFECTIVE_KUBECONFIG_PATH="${TARGET_KUBECONFIG_PATH:-/etc/rancher/k3s/k3s.yaml}"
+    - export EFFECTIVE_ROLLOUT_TIMEOUT="${K8S_ROLLOUT_TIMEOUT:-300s}"
+    - export REGISTRY_PULL_SECRET_NAME="${REGISTRY_PULL_SECRET_NAME:-gitlab-registry-pull}"
+    - export EFFECTIVE_REGISTRY_PULL_USER="${REGISTRY_PULL_USER:-$CI_REGISTRY_USER}"
+    - export EFFECTIVE_REGISTRY_PULL_PASSWORD="${REGISTRY_PULL_PASSWORD:-$CI_REGISTRY_PASSWORD}"
+    - export EFFECTIVE_DEPLOY_IMAGE="${DEPLOY_IMAGE_OVERRIDE:-$DEPLOY_IMAGE}"
+    - |
+      if [ "$CI_PIPELINE_SOURCE" = "push" ] && [ -n "${DEPLOY_IMAGE_OVERRIDE:-}" ]; then
+        echo "[DEPLOY][ERROR] DEPLOY_IMAGE_OVERRIDE must not be used in push pipelines."
+        echo "[DEPLOY][ERROR] DEPLOY_IMAGE_OVERRIDE=$DEPLOY_IMAGE_OVERRIDE"
+        exit 1
+      fi
+    - echo "[DEPLOY TARGET] namespace=$EFFECTIVE_K8S_NAMESPACE kubeconfig=$EFFECTIVE_KUBECONFIG_PATH deployment=$K8S_DEPLOYMENT container=$K8S_CONTAINER timeout=$EFFECTIVE_ROLLOUT_TIMEOUT"
+  script:
+    - echo "[DEPLOY] preflight registry image exists -> $EFFECTIVE_DEPLOY_IMAGE"
+    - docker manifest inspect "$EFFECTIVE_DEPLOY_IMAGE" >/dev/null
+    - echo "[DEPLOY] check target nodes"
+    - |
+      docker run --rm \
+        --user 0:0 \
+        --network host \
+        -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+        "$KUBECTL_IMAGE" \
+        --kubeconfig=/kubeconfig \
+        get nodes -o wide
+    - echo "[DEPLOY] check target deployments"
+    - |
+      docker run --rm \
+        --user 0:0 \
+        --network host \
+        -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+        "$KUBECTL_IMAGE" \
+        --kubeconfig=/kubeconfig \
+        -n "$EFFECTIVE_K8S_NAMESPACE" \
+        get deploy -o wide
+    - echo "[DEPLOY] ensure registry pull secret -> $REGISTRY_PULL_SECRET_NAME"
+    - |
+      docker run --rm \
+        --user 0:0 \
+        --network host \
+        -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+        "$KUBECTL_IMAGE" \
+        --kubeconfig=/kubeconfig \
+        -n "$EFFECTIVE_K8S_NAMESPACE" \
+        create secret docker-registry "$REGISTRY_PULL_SECRET_NAME" \
+        --docker-server="$CI_REGISTRY" \
+        --docker-username="$EFFECTIVE_REGISTRY_PULL_USER" \
+        --docker-password="$EFFECTIVE_REGISTRY_PULL_PASSWORD" \
+        --dry-run=client \
+        -o yaml | docker run --rm -i \
+        --user 0:0 \
+        --network host \
+        -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+        "$KUBECTL_IMAGE" \
+        --kubeconfig=/kubeconfig \
+        -n "$EFFECTIVE_K8S_NAMESPACE" \
+        apply -f -
+    - echo "[DEPLOY] attach registry pull secret to $K8S_DEPLOYMENT"
+    - |
+      docker run --rm \
+        --user 0:0 \
+        --network host \
+        -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+        "$KUBECTL_IMAGE" \
+        --kubeconfig=/kubeconfig \
+        -n "$EFFECTIVE_K8S_NAMESPACE" \
+        patch deployment "$K8S_DEPLOYMENT" \
+        --type=strategic \
+        -p "{\"spec\":{\"template\":{\"spec\":{\"imagePullSecrets\":[{\"name\":\"$REGISTRY_PULL_SECRET_NAME\"}]}}}}"
+    - echo "[DEPLOY] set image $K8S_DEPLOYMENT/$K8S_CONTAINER -> $EFFECTIVE_DEPLOY_IMAGE"
+    - |
+      docker run --rm \
+        --user 0:0 \
+        --network host \
+        -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+        "$KUBECTL_IMAGE" \
+        --kubeconfig=/kubeconfig \
+        -n "$EFFECTIVE_K8S_NAMESPACE" \
+        set image "deployment/$K8S_DEPLOYMENT" "$K8S_CONTAINER=$EFFECTIVE_DEPLOY_IMAGE"
+    - echo "[DEPLOY] wait rollout $K8S_DEPLOYMENT"
+    - |
+      if ! docker run --rm \
+        --user 0:0 \
+        --network host \
+        -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+        "$KUBECTL_IMAGE" \
+        --kubeconfig=/kubeconfig \
+        -n "$EFFECTIVE_K8S_NAMESPACE" \
+        rollout status "deployment/$K8S_DEPLOYMENT" --timeout="$EFFECTIVE_ROLLOUT_TIMEOUT"; then
+        echo "[DEPLOY][ERROR] rollout failed. Collecting diagnostics..."
+        docker run --rm \
+          --user 0:0 \
+          --network host \
+          -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+          "$KUBECTL_IMAGE" \
+          --kubeconfig=/kubeconfig \
+          -n "$EFFECTIVE_K8S_NAMESPACE" \
+          get pods -o wide || true
+        docker run --rm \
+          --user 0:0 \
+          --network host \
+          -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+          "$KUBECTL_IMAGE" \
+          --kubeconfig=/kubeconfig \
+          -n "$EFFECTIVE_K8S_NAMESPACE" \
+          describe deployment "$K8S_DEPLOYMENT" || true
+        docker run --rm \
+          --user 0:0 \
+          --network host \
+          -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+          "$KUBECTL_IMAGE" \
+          --kubeconfig=/kubeconfig \
+          -n "$EFFECTIVE_K8S_NAMESPACE" \
+          describe pods || true
+        docker run --rm \
+          --user 0:0 \
+          --network host \
+          -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+          "$KUBECTL_IMAGE" \
+          --kubeconfig=/kubeconfig \
+          -n "$EFFECTIVE_K8S_NAMESPACE" \
+          get events --sort-by=.lastTimestamp | tail -80 || true
+        echo "[DEPLOY] rolling back $K8S_DEPLOYMENT"
+        docker run --rm \
+          --user 0:0 \
+          --network host \
+          -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+          "$KUBECTL_IMAGE" \
+          --kubeconfig=/kubeconfig \
+          -n "$EFFECTIVE_K8S_NAMESPACE" \
+          rollout undo "deployment/$K8S_DEPLOYMENT" || true
+        docker run --rm \
+          --user 0:0 \
+          --network host \
+          -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+          "$KUBECTL_IMAGE" \
+          --kubeconfig=/kubeconfig \
+          -n "$EFFECTIVE_K8S_NAMESPACE" \
+          rollout status "deployment/$K8S_DEPLOYMENT" --timeout="$EFFECTIVE_ROLLOUT_TIMEOUT" || true
+        exit 1
+      fi
+    - echo "[DEPLOY] assert current image"
+    - |
+      CURRENT_IMAGE="$(docker run --rm \
+        --user 0:0 \
+        --network host \
+        -v "$EFFECTIVE_KUBECONFIG_PATH:/kubeconfig:ro" \
+        "$KUBECTL_IMAGE" \
+        --kubeconfig=/kubeconfig \
+        -n "$EFFECTIVE_K8S_NAMESPACE" \
+        get deploy "$K8S_DEPLOYMENT" \
+        -o jsonpath='{.spec.template.spec.containers[0].image}')"
+      echo "[DEPLOY] current image=$CURRENT_IMAGE"
+      echo "[DEPLOY] expected image=$EFFECTIVE_DEPLOY_IMAGE"
+      if [ "$CURRENT_IMAGE" != "$EFFECTIVE_DEPLOY_IMAGE" ]; then
+        echo "[DEPLOY][ERROR] deployed image mismatch"
+        exit 1
+      fi
+
+.nas_deploy_rules_backend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/backend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_deploy_rules_backend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/backend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/backend/**/*
+        - .gitlab-ci.yml
+      when: manual
+    - when: never
+
+.nas_deploy_rules_frontend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/frontend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_deploy_rules_frontend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/frontend/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/frontend/**/*
+        - .gitlab-ci.yml
+      when: manual
+    - when: never
+
+.nas_deploy_rules_ai_server:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/ai-server/**/*
+        - packages/prompts/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "dev" && $DEPLOY_SERVICE == "ai-server" && $DEPLOY_TARGET == "nas"'
+      when: manual
+    - when: never
+
+.aws_deploy_rules_ai_server:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/ai-server/**/*
+        - packages/prompts/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/ai-server/**/*
+        - packages/prompts/**/*
+        - .gitlab-ci.yml
+      when: manual
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "aws-dev" && $DEPLOY_SERVICE == "ai-server" && $DEPLOY_TARGET == "aws"'
+      when: manual
+    - when: never
+
+.nas_deploy_rules_gte:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/gte-reranker-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_deploy_rules_gte:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/gte-reranker-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/gte-reranker-server/**/*
+        - .gitlab-ci.yml
+      when: manual
+    - when: never
+
+.nas_deploy_rules_kure:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - apps/kure-embedding-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: never
+
+.aws_deploy_rules_kure:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "aws-dev"'
+      changes:
+        - apps/kure-embedding-server/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^team\/.*$/'
+      changes:
+        - apps/kure-embedding-server/**/*
+        - .gitlab-ci.yml
+      when: manual
+    - when: never
+
+deploy_backend_nas_dev:
+  extends:
+    - .deploy_k3s_template
+    - .nas_deploy_rules_backend
+  tags:
+    - book-curation-api
+  needs:
+    - job: build_backend_image_nas_dev
+  variables:
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "backend"
+    K8S_CONTAINER: "backend"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_backend_aws_dev:
+  extends:
+    - .deploy_k3s_template
+    - .aws_deploy_rules_backend
+  tags:
+    - book-curation-aws-deploy
+  needs:
+    - job: build_backend_image_aws_dev
+  variables:
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "backend"
+    K8S_CONTAINER: "backend"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_frontend_nas_dev:
+  extends:
+    - .deploy_k3s_template
+    - .nas_deploy_rules_frontend
+  tags:
+    - book-curation-api
+  needs:
+    - job: build_frontend_image_nas_dev
+  variables:
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "frontend"
+    K8S_CONTAINER: "frontend"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_frontend_aws_dev:
+  extends:
+    - .deploy_k3s_template
+    - .aws_deploy_rules_frontend
+  tags:
+    - book-curation-aws-deploy
+  needs:
+    - job: build_frontend_image_aws_dev
+  variables:
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "frontend"
+    K8S_CONTAINER: "frontend"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_ai_server_nas_dev:
+  extends:
+    - .deploy_k3s_template
+    - .nas_deploy_rules_ai_server
+  tags:
+    - book-curation-api
+  needs:
+    - job: build_ai_server_image_nas_dev
+      optional: true
+  variables:
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "ai-server"
+    K8S_CONTAINER: "ai-server"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/ai-server:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_ai_server_aws_dev:
+  extends:
+    - .deploy_k3s_template
+    - .aws_deploy_rules_ai_server
+  tags:
+    - book-curation-aws-deploy
+  needs:
+    - job: build_ai_server_image_aws_dev
+      optional: true
+  variables:
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "ai-server"
+    K8S_CONTAINER: "ai-server"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/ai-server:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_gte_reranker_server_nas_dev:
+  extends:
+    - .deploy_k3s_template
+    - .nas_deploy_rules_gte
+  tags:
+    - book-curation-api
+  needs:
+    - job: build_gte_reranker_server_image_nas_dev
+  variables:
+    K8S_ROLLOUT_TIMEOUT: "900s"
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "gte-reranker-server"
+    K8S_CONTAINER: "gte-reranker-server"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/gte-reranker-server:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_gte_reranker_server_aws_dev:
+  extends:
+    - .deploy_k3s_template
+    - .aws_deploy_rules_gte
+  tags:
+    - book-curation-aws-deploy
+  needs:
+    - job: build_gte_reranker_server_image_aws_dev
+  variables:
+    K8S_ROLLOUT_TIMEOUT: "900s"
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "gte-reranker-server"
+    K8S_CONTAINER: "gte-reranker-server"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/gte-reranker-server:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_kure_embedding_server_nas_dev:
+  extends:
+    - .deploy_k3s_template
+    - .nas_deploy_rules_kure
+  tags:
+    - book-curation-api
+  needs:
+    - job: build_kure_embedding_server_image_nas_dev
+  variables:
+    K8S_ROLLOUT_TIMEOUT: "900s"
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "kure-embedding-server"
+    K8S_CONTAINER: "kure-embedding-server"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/kure-embedding-server:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+
+deploy_kure_embedding_server_aws_dev:
+  extends:
+    - .deploy_k3s_template
+    - .aws_deploy_rules_kure
+  tags:
+    - book-curation-aws-deploy
+  needs:
+    - job: build_kure_embedding_server_image_aws_dev
+  variables:
+    K8S_ROLLOUT_TIMEOUT: "900s"
+    TARGET_K8S_NAMESPACE: "book-curation-dev"
+    TARGET_KUBECONFIG_PATH: "/etc/rancher/k3s/k3s.yaml"
+    K8S_DEPLOYMENT: "kure-embedding-server"
+    K8S_CONTAINER: "kure-embedding-server"
+    DEPLOY_IMAGE: "$CI_REGISTRY_IMAGE/kure-embedding-server:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"

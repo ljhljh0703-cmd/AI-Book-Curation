@@ -1,0 +1,10 @@
+# Runtime API / client dependencies.
+# 수정 포인트: 상대적으로 가벼운 런타임 의존성은 heavy 의존성과 분리합니다.
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+requests==2.32.3
+pydantic==2.9.2
+pydantic-settings==2.5.2
+python-dotenv==1.0.1
+qdrant-client==1.12.1
+redis==5.0.8

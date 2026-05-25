@@ -1,0 +1,38 @@
+# OAuth2 설정 템플릿입니다.
+# 실제 client-id/client-secret은 Git에 올리지 말고 환경변수로 주입하세요.
+# 사용 방법 예시:
+# 1) 이 파일을 application-oauth.yml로 복사
+# 2) application.yml에 spring.config.import: optional:classpath:application-oauth.yml 추가하거나
+# 3) 실행 시 --spring.config.additional-location=classpath:/application-oauth.yml 사용
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET:}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - profile_nickname
+              - account_email
+            client-name: Kakao
+
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+

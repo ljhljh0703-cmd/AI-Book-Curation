@@ -1,0 +1,108 @@
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        # CSRF 수정:
+        # 운영 기준은 Cloudflare Tunnel + HTTPS 도메인(https://book.taeo-dev.com) 접속입니다.
+        # Secure=true로 두어 HTTPS 요청에서만 세션 쿠키가 전송되게 합니다.
+        same-site: ${SESSION_COOKIE_SAME_SITE:lax}
+        secure: ${SESSION_COOKIE_SECURE:true}
+
+app:
+  cors:
+    allowed-origins:
+      # CSRF 수정:
+      # 브라우저가 실제 접속하는 프론트 Origin과 정확히 일치해야 합니다.
+      # 운영 도메인 Origin과 정확히 일치해야 합니다.
+      - ${FRONTEND_ORIGIN:https://book.taeo-dev.com}
+
+      # 추가:
+      # Cloudflare 도메인으로 접속하는 경우도 허용합니다.
+      - ${PUBLIC_FRONTEND_ORIGIN:https://book.taeo-dev.com}
+
+  security:
+    csrf:
+      cookie:
+        # CSRF 수정:
+        # 프론트 Nginx의 /api 프록시를 쓰면 브라우저 기준 same-origin 요청입니다.
+        # 운영 HTTPS 도메인에서는 SameSite=Lax, Secure=true가 맞습니다.
+        same-site: ${CSRF_COOKIE_SAME_SITE:lax}
+        secure: ${CSRF_COOKIE_SECURE:true}
+    rate-limit:
+      # 수정 포인트: Cloudflare Free 플랜의 rule 수 제한을 보완하기 위해 백엔드에서 주요 API별 요청 수를 제한합니다.
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      # 수정 포인트: Cloudflare Tunnel 뒤에서는 CF-Connecting-IP / X-Forwarded-For를 실제 사용자 IP 판단에 사용합니다.
+      trust-proxy-headers: ${RATE_LIMIT_TRUST_PROXY_HEADERS:true}
+      max-cached-request-body-bytes: ${RATE_LIMIT_MAX_CACHED_REQUEST_BODY_BYTES:8192}
+      cleanup-interval: ${RATE_LIMIT_CLEANUP_INTERVAL:5m}
+      login:
+        capacity: ${RATE_LIMIT_LOGIN_CAPACITY:5}
+        window: ${RATE_LIMIT_LOGIN_WINDOW:1m}
+      signup:
+        capacity: ${RATE_LIMIT_SIGNUP_CAPACITY:3}
+        window: ${RATE_LIMIT_SIGNUP_WINDOW:10m}
+      email-availability:
+        capacity: ${RATE_LIMIT_EMAIL_AVAILABILITY_CAPACITY:30}
+        window: ${RATE_LIMIT_EMAIL_AVAILABILITY_WINDOW:1m}
+      verification-send:
+        capacity: ${RATE_LIMIT_VERIFICATION_SEND_CAPACITY:3}
+        window: ${RATE_LIMIT_VERIFICATION_SEND_WINDOW:10m}
+      verification-confirm:
+        capacity: ${RATE_LIMIT_VERIFICATION_CONFIRM_CAPACITY:10}
+        window: ${RATE_LIMIT_VERIFICATION_CONFIRM_WINDOW:10m}
+      social-signup-complete:
+        capacity: ${RATE_LIMIT_SOCIAL_SIGNUP_COMPLETE_CAPACITY:3}
+        window: ${RATE_LIMIT_SOCIAL_SIGNUP_COMPLETE_WINDOW:10m}
+      onboarding-book-search:
+        capacity: ${RATE_LIMIT_ONBOARDING_BOOK_SEARCH_CAPACITY:20}
+        window: ${RATE_LIMIT_ONBOARDING_BOOK_SEARCH_WINDOW:1m}
+      chat-session-create:
+        capacity: ${RATE_LIMIT_CHAT_SESSION_CREATE_CAPACITY:20}
+        window: ${RATE_LIMIT_CHAT_SESSION_CREATE_WINDOW:1m}
+      chat-message:
+        capacity: ${RATE_LIMIT_CHAT_MESSAGE_CAPACITY:10}
+        window: ${RATE_LIMIT_CHAT_MESSAGE_WINDOW:1m}
+      # 수정 포인트: 비로그인 추천 API는 로그인 채팅보다 더 낮은 분당/일일 request 제한을 별도로 둡니다.
+      guest-chat-message:
+        capacity: ${RATE_LIMIT_GUEST_CHAT_MESSAGE_CAPACITY:8}
+        window: ${RATE_LIMIT_GUEST_CHAT_MESSAGE_WINDOW:1m}
+      guest-chat-daily:
+        capacity: ${RATE_LIMIT_GUEST_CHAT_DAILY_CAPACITY:40}
+        window: ${RATE_LIMIT_GUEST_CHAT_DAILY_WINDOW:1d}
+      book-availability:
+        capacity: ${RATE_LIMIT_BOOK_AVAILABILITY_CAPACITY:10}
+        window: ${RATE_LIMIT_BOOK_AVAILABILITY_WINDOW:1m}
+      admin-image-upload:
+        capacity: ${RATE_LIMIT_ADMIN_IMAGE_UPLOAD_CAPACITY:5}
+        window: ${RATE_LIMIT_ADMIN_IMAGE_UPLOAD_WINDOW:1m}
+
+  oauth2:
+    # 추가:
+    # 소셜 로그인 성공 후 프론트 성공 페이지로 이동합니다.
+    success-redirect-url: ${OAUTH2_SUCCESS_REDIRECT_URL:https://book.taeo-dev.com/oauth/success}
+
+    # 추가:
+    # 소셜 최초 로그인 후 자체 회원가입 추가입력 페이지로 이동합니다.
+    signup-redirect-url: ${OAUTH2_SIGNUP_REDIRECT_URL:https://book.taeo-dev.com/signup?socialPending=true}
+
+    # 추가:
+    # 소셜 로그인 실패 시 로그인 페이지로 되돌립니다.
+    failure-redirect-url: ${OAUTH2_FAILURE_REDIRECT_URL:https://book.taeo-dev.com/login?socialError=true}
+
+  file-storage:
+    # 수정 포인트: K3s에서는 이 컨테이너 경로를 NAS hostPath/PVC로 마운트해야 업로드 이미지가 pod 재시작 후에도 유지됩니다.
+    root-path: ${APP_FILE_STORAGE_ROOT:/app/uploads}
+    public-url-prefix: ${APP_FILE_PUBLIC_URL_PREFIX:/uploads}
+    character-image:
+      max-size-bytes: ${CHARACTER_IMAGE_MAX_SIZE_BYTES:2097152}
+      min-width: ${CHARACTER_IMAGE_MIN_WIDTH:128}
+      min-height: ${CHARACTER_IMAGE_MIN_HEIGHT:128}
+      max-width: ${CHARACTER_IMAGE_MAX_WIDTH:1024}
+      max-height: ${CHARACTER_IMAGE_MAX_HEIGHT:1024}
+      min-aspect-ratio: ${CHARACTER_IMAGE_MIN_ASPECT_RATIO:0.8}
+      max-aspect-ratio: ${CHARACTER_IMAGE_MAX_ASPECT_RATIO:1.25}
+      allowed-content-types:
+        - image/png
+        - image/jpeg
+        - image/gif

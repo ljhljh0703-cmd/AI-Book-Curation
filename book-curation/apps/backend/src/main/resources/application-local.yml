@@ -1,0 +1,124 @@
+# 로컬 PC 실행 전용 설정입니다.
+# 목적: NAS/K3s 내부 DNS에 묶인 통신을 끊고 frontend(5173) → backend(8080) → ai-server(8001)를 모두 localhost로 테스트합니다.
+# 실행 예: SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    session:
+      timeout: ${SESSION_TIMEOUT:12h}
+      cookie:
+        http-only: true
+        # 로컬 HTTP 테스트에서는 Secure 쿠키를 사용하면 브라우저가 세션/CSRF 쿠키를 저장하지 않을 수 있습니다.
+        same-site: ${SESSION_COOKIE_SAME_SITE:lax}
+        secure: ${SESSION_COOKIE_SECURE:false}
+
+spring:
+  datasource:
+    # 수정 포인트: local 프로필 기본값은 팀원 PC의 로컬 PostgreSQL입니다.
+    # NAS/Tailscale DB를 사용할 때만 DB_URL을 jdbc:postgresql://100.x.x.x:5432/book_curation 형식으로 덮어쓰세요.
+    # K3s NodePort로 DB를 열어 둔 환경이라면 팀 설정에 맞춰 31432 같은 외부 노출 포트를 사용할 수 있습니다.
+    url: ${DB_URL:jdbc:postgresql://100.77.247.12:31432/book_curation}
+    username: ${DB_USERNAME:book_user}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
+
+  jpa:
+    hibernate:
+      # 로컬에서도 기존 SQL 스키마를 기준으로 검증만 수행합니다.
+      # 테이블이 아직 없으면 docs/sql 파일을 먼저 적용하거나 JPA_DDL_AUTO=none으로 낮춰 실행하세요.
+      ddl-auto: ${JPA_DDL_AUTO:validate}
+    properties:
+      hibernate:
+        default_schema: ${DB_SCHEMA:book}
+        format_sql: ${HIBERNATE_FORMAT_SQL:true}
+
+app:
+  redis:
+    # 로컬은 Valkey가 없어도 실행되도록 기본 비활성화합니다. docker run valkey 사용 시 REDIS_ENABLED=true로 켜세요.
+    enabled: ${REDIS_ENABLED:false}
+    key-prefix: ${REDIS_KEY_PREFIX:book-curation-local}
+    guest-chat-ttl: ${GUEST_CHAT_TTL_SECONDS:86400}s
+    guest-duplicate-lock-ttl: ${GUEST_DUPLICATE_LOCK_TTL_SECONDS:20}s
+    recommendation-cache-ttl: ${RECOMMENDATION_CACHE_TTL_SECONDS:600}s
+    qdrant-search-cache-ttl: ${QDRANT_SEARCH_CACHE_TTL_SECONDS:600}s
+    gte-rerank-cache-ttl: ${GTE_RERANK_CACHE_TTL_SECONDS:600}s
+    admin-job-lock-ttl: ${ADMIN_JOB_LOCK_TTL_SECONDS:21600}s
+
+  cors:
+    allowed-origins:
+      # Vite 개발 서버 기본 Origin입니다.
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+      # React CRA/다른 개발 서버를 쓸 때를 대비한 예비 Origin입니다.
+      - http://localhost:3000
+      - http://127.0.0.1:3000
+
+  security:
+    csrf:
+      cookie:
+        # 로컬은 frontend/backend가 http://localhost 계열이므로 Lax + Secure=false가 안전합니다.
+        same-site: ${CSRF_COOKIE_SAME_SITE:lax}
+        secure: ${CSRF_COOKIE_SECURE:false}
+    rate-limit:
+      # 로컬 테스트 중 429 때문에 기능 검증이 막히지 않도록 기본 비활성화합니다.
+      enabled: ${RATE_LIMIT_ENABLED:false}
+      trust-proxy-headers: ${RATE_LIMIT_TRUST_PROXY_HEADERS:false}
+
+  ai-server:
+    # 로컬 backend가 로컬 FastAPI ai-server를 호출하도록 변경합니다.
+    base-url: ${AI_SERVER_BASE_URL:http://localhost:8001}
+    connect-timeout: ${AI_SERVER_CONNECT_TIMEOUT:3s}
+    read-timeout: ${AI_SERVER_READ_TIMEOUT:75s}
+    # ai-server/.env.local의 AI_INTERNAL_API_KEY와 같은 값으로 맞추면 됩니다. 비워두면 헤더를 보내지 않습니다.
+    internal-api-key: ${AI_INTERNAL_API_KEY:17962ac470810973bbecbe004cdb3bee3bb46218fbddba6d753df718cbf01052}
+
+  query-evaluation-runner:
+    # 로컬 backend에서 local runner를 함께 띄울 때 사용합니다.
+    enabled: ${QUERY_EVAL_LOCAL_RUNNER_ENABLED:false}
+    base-url: ${QUERY_EVAL_LOCAL_RUNNER_BASE_URL:http://127.0.0.1:18081}
+    api-key: ${QUERY_EVAL_LOCAL_RUNNER_API_KEY:}
+    connect-timeout: ${QUERY_EVAL_LOCAL_RUNNER_CONNECT_TIMEOUT:3s}
+    read-timeout: ${QUERY_EVAL_LOCAL_RUNNER_READ_TIMEOUT:30s}
+
+  oauth2:
+    # 로컬 소셜 로그인 테스트 시 OAuth Redirect URI는 백엔드 주소 기준으로 등록해야 합니다.
+    # 예: http://localhost:8080/login/oauth2/code/google
+    success-redirect-url: ${OAUTH2_SUCCESS_REDIRECT_URL:http://localhost:5173/oauth/success}
+    signup-redirect-url: ${OAUTH2_SIGNUP_REDIRECT_URL:http://localhost:5173/signup?socialPending=true}
+    failure-redirect-url: ${OAUTH2_FAILURE_REDIRECT_URL:http://localhost:5173/login?socialError=true}
+
+  file-storage:
+    # 로컬 업로드 파일은 프로젝트 밖 임시 폴더에 저장합니다.
+    root-path: ${APP_FILE_STORAGE_ROOT:./.local/uploads}
+    public-url-prefix: ${APP_FILE_PUBLIC_URL_PREFIX:/uploads}
+    character-image:
+      max-size-bytes: ${CHARACTER_IMAGE_MAX_SIZE_BYTES:2097152}
+      min-width: ${CHARACTER_IMAGE_MIN_WIDTH:128}
+      min-height: ${CHARACTER_IMAGE_MIN_HEIGHT:128}
+      max-width: ${CHARACTER_IMAGE_MAX_WIDTH:1024}
+      max-height: ${CHARACTER_IMAGE_MAX_HEIGHT:1024}
+      min-aspect-ratio: ${CHARACTER_IMAGE_MIN_ASPECT_RATIO:0.8}
+      max-aspect-ratio: ${CHARACTER_IMAGE_MAX_ASPECT_RATIO:1.25}
+      allowed-content-types:
+        - image/png
+        - image/jpeg
+        - image/gif
+
+data4library:
+  base-url: ${DATA4LIBRARY_BASE_URL:http://data4library.kr}
+  auth-key: ${DATA4LIBRARY_AUTH_KEY:}
+  page-size: ${DATA4LIBRARY_PAGE_SIZE:100}
+
+aladin:
+  base-url: ${ALADIN_BASE_URL:http://www.aladin.co.kr}
+  ttb-key: ${ALADIN_TTB_KEY:}
+  search-target: ${ALADIN_SEARCH_TARGET:Book}
+  output: ${ALADIN_OUTPUT:JS}
+  version: ${ALADIN_VERSION:20131101}
+  max-results: ${ALADIN_MAX_RESULTS:10}

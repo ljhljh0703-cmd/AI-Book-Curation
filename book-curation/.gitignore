@@ -1,0 +1,203 @@
+# =========================================================
+# OS
+# =========================================================
+.DS_Store
+Thumbs.db
+
+# =========================================================
+# IDE / Editor
+# =========================================================
+.idea/
+.vscode/
+*.iml
+
+# =========================================================
+# Java / Gradle / Spring
+# =========================================================
+.gradle/
+build/
+out/
+target/
+apps/backend/bin/
+
+# secret/local spring config
+application-secret.yml
+application-local.yml
+
+# 팀원 공유용 local profile 설정 파일
+# 실제 비밀번호가 아니라 ${DB_PASSWORD:...} 같은 환경변수 참조 방식이면 커밋 가능
+!apps/backend/src/main/resources/application-local.yml
+
+# =========================================================
+# Node / React / Frontend
+# =========================================================
+node_modules/
+dist/
+.next/
+
+apps/frontend/node_modules/
+apps/frontend/dist/
+apps/frontend/dist-ssr/
+
+# Frontend env files
+apps/frontend/.env.development
+apps/frontend/.env.production
+apps/frontend/.env.*.local
+
+# Capacitor / Android build artifacts
+apps/frontend/android/.gradle/
+apps/frontend/android/**/build/
+apps/frontend/android/local.properties
+apps/frontend/android/captures/
+apps/frontend/android/.externalNativeBuild/
+apps/frontend/android/.cxx/
+
+# Android Studio local files
+apps/frontend/android/.idea/
+apps/frontend/android/*.iml
+apps/frontend/android/.project
+apps/frontend/android/.classpath
+apps/frontend/android/.settings/
+
+# APK / AAB outputs
+apps/frontend/android/app/debug/
+apps/frontend/android/app/release/
+apps/frontend/android/app/*.apk
+apps/frontend/android/app/*.aab
+apps/frontend/android/app/outputs/
+
+# signing keys - never commit
+apps/frontend/android/app/*.jks
+apps/frontend/android/app/*.keystore
+apps/frontend/android/*.jks
+apps/frontend/android/*.keystore
+
+# =========================================================
+# Python
+# =========================================================
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+.venv/
+.venv-*/
+venv/
+venv-*/
+env/
+env-*/
+
+apps/*/.venv/
+apps/*/.venv-*/
+apps/*/venv/
+apps/*/venv-*/
+apps/*/env/
+apps/*/env-*/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# =========================================================
+# Env
+# =========================================================
+.env
+.env.*
+
+# env example files are safe to commit
+!.env.example
+!.env.local.example
+!*.env.example
+!*.env.local.example
+
+# =========================================================
+# Local model/cache directories
+# =========================================================
+apps/kure-embedding-server/.local/
+apps/gte-reranker-server/.local/
+apps/gte-reranker-server/models/
+
+# =========================================================
+# Data files
+# =========================================================
+data/raw/
+data/processed/
+data/cache/
+
+*.csv
+*.jsonl
+*.parquet
+*.zip
+
+# 주의:
+# *.json 은 전역 ignore 하지 않습니다.
+# 소스/프롬프트/설정용 JSON 파일이 새로 추가될 수 있기 때문입니다.
+
+# =========================================================
+# Secrets / keys
+# =========================================================
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+
+# =========================================================
+# Logs
+# =========================================================
+logs/
+*.log
+
+# =========================================================
+# AI training datasets / LightFM artifacts / local runtime files
+# =========================================================
+*.model
+
+apps/ai-server/data/lightfm/**
+apps/ai-server/data/persona/**
+apps/ai-server/data/**/*.jsonl
+apps/ai-server/data/**/*.json
+apps/ai-server/data/**/*.csv
+apps/ai-server/data/**/*.parquet
+apps/ai-server/data/**/*.zip
+apps/ai-server/data/**/*.tar
+apps/ai-server/data/**/*.tar.gz
+
+apps/ai-server/artifacts/**
+apps/ai-server/**/*.tar
+apps/ai-server/**/*.tar.gz
+apps/ai-server/**/*.tgz
+apps/ai-server/**/*.zip
+apps/ai-server/**/*.joblib
+apps/ai-server/**/*.pkl
+apps/ai-server/**/*.pickle
+apps/ai-server/**/*.npz
+apps/ai-server/**/*.bin
+apps/ai-server/**/*.pt
+apps/ai-server/**/*.pth
+apps/ai-server/**/*.onnx
+
+apps/ai-server/**/colab_bundle*/
+apps/ai-server/**/lightfm_colab_bundle*/
+apps/ai-server/**/training_outputs*/
+apps/ai-server/**/checkpoints*/
+
+# keep lightweight docs/placeholders in ignored data/artifact directories
+!apps/ai-server/data/**/.gitkeep
+!apps/ai-server/data/**/README*.md
+!apps/ai-server/artifacts/**/.gitkeep
+!apps/ai-server/artifacts/**/README*.md
+# Local evaluation runner secrets
+local-query-eval-runner/.env
+local-query-eval-runner/*.env
+local-query-eval-runner/logs/
+
+# Local-only query evaluation runner artifacts
+local-query-eval-runner/
+.local/
+.env.local
+
+# Local-only query evaluation runner entry scripts / secrets
+/run-local-query-eval-runner.ps1
+/start-query-eval-runner.sh
+/.local/
+/local-query-eval-runner/

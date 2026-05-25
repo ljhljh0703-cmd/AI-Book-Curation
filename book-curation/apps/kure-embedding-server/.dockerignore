@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+# 수정 포인트: 로컬 PC 전용 env가 Docker/K8s 이미지에 포함되어 운영 설정을 덮어쓰지 않도록 제외합니다.
+.env.local
+.env.*.local
+.venv/
+venv/
+models/
+.cache/
+*.log
+.DS_Store
