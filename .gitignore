@@ -1,0 +1,37 @@
+# Environments
+.venv/
+venv311/
+__pycache__/
+*.pyc
+
+# Data and Artifacts
+artifacts/
+synthetic_persona_output/
+성능평가/
+data/
+*.json
+*.csv
+*.tar.gz
+*.json (2).json
+persona_full_result_*.json
+books_sample_*.json
+
+# Documentation and Portfolio
+docs/
+portfolio/
+composition/
+*.md
+*.html
+
+# VS Code and OS
+.vscode/
+.DS_Store
+
+# Large or External Libraries
+lightfm/
+lightfm-1.17/
+
+# Sensitive files
+*.pem
+*.key
+.env
