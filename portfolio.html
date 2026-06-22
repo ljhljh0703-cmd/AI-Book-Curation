@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>북켓몬 — AI 개인화 도서 큐레이션 · 포트폴리오</title>
+<meta name="description" content="다중 목표 추천 수식을 직접 설계하고, 18쿼리 ablation 하네스로 Precision 97.78%·Bad Rate 2.22%를 실측한 AI 도서 큐레이션 서비스. LightFM·HyperCLOVA X·Qdrant·GTE Reranker 기반." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f6f8fc;
+    --bg-soft:#eef2f9;
+    --surface:#ffffff;
+    --ink:#0e1525;
+    --ink-soft:#42506b;
+    --ink-faint:#7a87a3;
+    --line:#e3e9f3;
+    --brand:#3b6fff;
+    --brand-2:#7a5cff;
+    --accent:#00c2b8;
+    --warn:#ff7a59;
+    --shadow:0 10px 40px -12px rgba(30,55,120,.18);
+    --shadow-lg:0 30px 80px -24px rgba(30,55,120,.30);
+    --radius:22px;
+    --maxw:1120px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Noto Sans KR','Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+  section{position:relative}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--brand);
+    background:linear-gradient(90deg,rgba(59,111,255,.10),rgba(122,92,255,.10));
+    padding:7px 14px;border-radius:999px;border:1px solid rgba(59,111,255,.18);
+  }
+  h2.section-title{font-size:clamp(28px,4vw,44px);font-weight:900;letter-spacing:-.02em;margin:18px 0 14px;line-height:1.15}
+  .section-sub{font-size:17px;color:var(--ink-soft);max-width:680px}
+
+  /* Reveal on scroll */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ============ NAV ============ */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    backdrop-filter:saturate(180%) blur(14px);
+    background:rgba(246,248,252,.78);
+    border-bottom:1px solid transparent;
+    transition:border-color .3s, background .3s;
+  }
+  nav.scrolled{border-bottom:1px solid var(--line);background:rgba(246,248,252,.92)}
+  .nav-inner{max-width:var(--maxw);margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.01em}
+  .brand .logo{
+    width:30px;height:30px;border-radius:9px;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    display:grid;place-items:center;color:#fff;font-size:16px;
+    box-shadow:0 6px 16px -4px rgba(59,111,255,.55);
+  }
+  .nav-links{display:flex;gap:26px;align-items:center}
+  .nav-links a{font-size:14.5px;font-weight:600;color:var(--ink-soft);transition:color .2s}
+  .nav-links a:hover{color:var(--brand)}
+  .nav-cta{
+    background:var(--ink);color:#fff;padding:9px 18px;border-radius:999px;font-size:14px;font-weight:700;
+    transition:transform .2s, box-shadow .2s;
+  }
+  .nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 20px -6px rgba(14,21,37,.45)}
+  @media(max-width:780px){.nav-links{display:none}}
+
+  /* ============ HERO ============ */
+  .hero{padding:160px 0 90px;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:50px;align-items:center}
+  .hero h1{font-size:clamp(38px,6vw,68px);font-weight:900;letter-spacing:-.035em;line-height:1.04;margin:22px 0 20px}
+  .hero h1 .grad{background:linear-gradient(120deg,var(--brand),var(--brand-2) 55%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.lead{font-size:19px;color:var(--ink-soft);max-width:560px;margin-bottom:30px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:34px}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:15.5px;
+    padding:14px 26px;border-radius:14px;transition:transform .2s, box-shadow .25s;cursor:pointer;border:none;
+  }
+  .btn-primary{background:linear-gradient(120deg,var(--brand),var(--brand-2));color:#fff;box-shadow:0 14px 34px -12px rgba(59,111,255,.7)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 44px -12px rgba(59,111,255,.8)}
+  .btn-ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow)}
+  .btn-ghost:hover{transform:translateY(-2px)}
+  .hero-badges{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{
+    font-size:12.5px;font-weight:700;color:var(--ink-soft);
+    background:var(--surface);border:1px solid var(--line);
+    padding:7px 13px;border-radius:999px;display:inline-flex;gap:7px;align-items:center;
+  }
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+
+  @media(max-width:880px){.hero-grid{grid-template-columns:1fr;gap:40px}.hero{padding:130px 0 60px}}
+
+  /* ============ PIPELINE DIAGRAM (hero right) ============ */
+  .pipe-diagram{background:linear-gradient(160deg,#0e1733,#16204a);border-radius:24px;padding:28px 22px;box-shadow:var(--shadow-lg);overflow:hidden}
+  .pd-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8ea2c9;margin-bottom:18px;font-family:'JetBrains Mono',monospace}
+  .pd-flow{display:flex;flex-direction:column;gap:0}
+  .pd-node{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;
+    padding:11px 14px;display:flex;align-items:center;gap:10px;
+  }
+  .pd-node.highlight{background:rgba(59,111,255,.14);border:1px solid rgba(59,111,255,.35)}
+  .pd-icon{font-size:18px;flex:0 0 28px;text-align:center}
+  .pd-text{display:flex;flex-direction:column}
+  .pd-text .pt{font-size:13px;font-weight:700;color:#fff;line-height:1.2}
+  .pd-text .ps{font-size:10.5px;color:#8ea2c9;margin-top:1px;font-family:'JetBrains Mono',monospace}
+  .pd-text .ps.hi{color:#7aa2ff}
+  .pd-arrow{display:flex;align-items:center;padding:2px 0 2px 18px;gap:6px}
+  .pd-arrow .line{flex:1;height:1px;background:linear-gradient(90deg,rgba(59,111,255,.5),rgba(0,194,184,.5))}
+  .pd-arrow .lbl{font-size:10px;font-weight:700;color:#5f7099;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+
+  /* ============ STATS STRIP ============ */
+  .stats{margin-top:8px;padding:46px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--bg-soft),var(--bg))}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+  .stat .num{font-size:clamp(26px,3.5vw,40px);font-weight:900;letter-spacing:-.02em;background:linear-gradient(120deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat .lbl{font-size:14px;color:var(--ink-soft);font-weight:600;margin-top:4px}
+  .stat .src{font-size:11.5px;color:var(--ink-faint);font-weight:600;margin-top:4px;font-family:'JetBrains Mono',monospace}
+  .badge-real{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;color:#079e95;background:rgba(0,194,184,.10);border:1px solid rgba(0,194,184,.28);padding:2px 7px;border-radius:6px;vertical-align:middle;margin-left:3px}
+  .badge-ext{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;color:#b07000;background:rgba(255,160,0,.10);border:1px solid rgba(255,160,0,.28);padding:2px 7px;border-radius:6px;vertical-align:middle;margin-left:3px}
+  .badge-cite{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;color:#7a5cff;background:rgba(122,92,255,.10);border:1px solid rgba(122,92,255,.28);padding:2px 7px;border-radius:6px;vertical-align:middle;margin-left:3px}
+  @media(max-width:860px){.stats-grid{grid-template-columns:repeat(2,1fr);gap:30px}}
+  @media(max-width:480px){.stats-grid{grid-template-columns:1fr;gap:30px}}
+
+  /* generic section padding */
+  .pad{padding:96px 0}
+  .center{text-align:center;display:flex;flex-direction:column;align-items:center}
+
+  /* ============ EMBEDDING BENCH CARD (신규 히어로 카드) ============ */
+  .bench-card{
+    background:linear-gradient(135deg,#0e1733,#1a1450);border-radius:var(--radius);padding:32px 30px;
+    box-shadow:var(--shadow-lg);color:#fff;margin-top:50px;position:relative;overflow:hidden;
+  }
+  .bench-card::before{content:'';position:absolute;inset:0;background:radial-gradient(70% 120% at 90% 0%,rgba(0,194,184,.20),transparent 50%),radial-gradient(60% 120% at 0% 100%,rgba(59,111,255,.25),transparent 50%)}
+  .bench-card>*{position:relative}
+  .bench-card .bc-title{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8ea2c9;margin-bottom:14px;font-family:'JetBrains Mono',monospace}
+  .bench-card .bc-head{font-size:clamp(18px,2.5vw,24px);font-weight:900;letter-spacing:-.02em;margin-bottom:8px}
+  .bench-card .bc-sub{font-size:14px;color:#bcc8ec;margin-bottom:22px;max-width:600px}
+  .bench-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .bench-model{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:18px 20px}
+  .bench-model.winner{background:rgba(0,194,184,.10);border:1px solid rgba(0,194,184,.30)}
+  .bench-model .bm-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8ea2c9;margin-bottom:10px;font-family:'JetBrains Mono',monospace}
+  .bench-model.winner .bm-label{color:#00c2b8}
+  .bench-model .bm-name{font-size:16px;font-weight:800;color:#fff;margin-bottom:12px}
+  .bench-metric{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
+  .bench-metric:last-child{border-bottom:none}
+  .bench-metric .bk{color:#8ea2c9}
+  .bench-metric .bv{font-weight:800;color:#fff;font-family:'JetBrains Mono',monospace}
+  .bench-metric .bv.up{color:#00c2b8}
+  .bench-metric .bv.warn{color:#ff7a59}
+  .bench-note{font-size:11.5px;color:#5f7099;margin-top:14px;font-family:'JetBrains Mono',monospace}
+  @media(max-width:680px){.bench-grid{grid-template-columns:1fr}}
+
+  /* ============ FEATURES ============ */
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:50px}
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:28px 26px;box-shadow:var(--shadow);transition:transform .3s, box-shadow .3s;
+  }
+  .card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+  .card .ic{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-size:24px;margin-bottom:16px;background:linear-gradient(135deg,rgba(59,111,255,.12),rgba(122,92,255,.12));border:1px solid rgba(59,111,255,.18)}
+  .card h3{font-size:19px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
+  .card p{font-size:14.5px;color:var(--ink-soft)}
+  @media(max-width:860px){.feat-grid{grid-template-columns:1fr}}
+
+  /* ============ CHALLENGES (설계 결정) ============ */
+  .ch-list{display:flex;flex-direction:column;gap:22px;margin-top:50px}
+  .ch{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;display:grid;grid-template-columns:64px 1fr;
+  }
+  .ch-no{background:linear-gradient(160deg,var(--brand),var(--brand-2));color:#fff;font-weight:900;font-size:24px;display:grid;place-items:center;font-family:'JetBrains Mono',monospace}
+  .ch-body{padding:26px 28px}
+  .ch-body h3{font-size:20px;font-weight:800;letter-spacing:-.01em;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .ch-body h3 .tag{font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--brand);background:rgba(59,111,255,.10);border:1px solid rgba(59,111,255,.2);padding:3px 9px;border-radius:7px}
+  .pp{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .pp .col{padding:16px 18px;border-radius:14px}
+  .pp .why{background:rgba(59,111,255,.06);border:1px solid rgba(59,111,255,.18)}
+  .pp .how{background:rgba(0,194,184,.07);border:1px solid rgba(0,194,184,.22)}
+  .pp .col .h{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+  .pp .why .h{color:#3b6fff}
+  .pp .how .h{color:#079e95}
+  .pp .col p{font-size:14px;color:var(--ink-soft)}
+  .pp code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--bg-soft);padding:1px 6px;border-radius:5px;color:var(--ink);border:1px solid var(--line)}
+  @media(max-width:760px){.ch{grid-template-columns:1fr}.ch-no{padding:14px;font-size:20px}.pp{grid-template-columns:1fr}}
+
+  /* ============ ARCHITECTURE ============ */
+  .arch{background:linear-gradient(180deg,var(--bg-soft),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .flow{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:50px}
+  .node{
+    width:100%;max-width:720px;background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    padding:22px 26px;box-shadow:var(--shadow);position:relative;
+  }
+  .node .tier{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+  .node h4{font-size:18px;font-weight:800;margin:4px 0 6px;letter-spacing:-.01em}
+  .node p{font-size:14px;color:var(--ink-soft)}
+  .node .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .node .tags span{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;color:var(--ink-soft);background:var(--bg-soft);border:1px solid var(--line);padding:4px 9px;border-radius:7px}
+  .arrow{height:46px;width:2px;background:linear-gradient(180deg,var(--brand),var(--brand-2));position:relative;margin:6px 0}
+  .arrow::after{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--brand-2)}
+  .arrow .lbl{position:absolute;left:14px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:11.5px;font-weight:700;color:var(--ink-faint);font-family:'JetBrains Mono',monospace}
+
+  /* ============ RERANKER CALLOUT ============ */
+  .reranker-callout{
+    width:100%;max-width:720px;background:linear-gradient(135deg,rgba(59,111,255,.07),rgba(0,194,184,.07));
+    border:1px solid rgba(59,111,255,.22);border-radius:14px;padding:18px 22px;margin:16px 0 6px;
+  }
+  .reranker-callout .rc-label{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+  .reranker-callout p{font-size:14px;color:var(--ink-soft)}
+  .reranker-callout code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--bg-soft);padding:1px 6px;border-radius:5px;color:var(--ink);border:1px solid var(--line)}
+  .cite-note{font-size:11.5px;color:var(--ink-faint);margin-top:8px;font-family:'JetBrains Mono',monospace}
+
+  /* ============ ABLATION TABLE ============ */
+  .ablation-wrap{margin-top:50px}
+  .ablation-title{font-size:16px;font-weight:800;margin-bottom:16px;letter-spacing:-.01em}
+  .ablation-table{width:100%;border-collapse:collapse;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
+  .ablation-table th{background:linear-gradient(120deg,#0e1733,#1a1450);color:#fff;padding:14px 18px;font-size:13px;font-weight:800;text-align:left;letter-spacing:.02em}
+  .ablation-table td{padding:14px 18px;font-size:14px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .ablation-table tr:last-child td{border-bottom:none}
+  .ablation-table .on{color:#079e95;font-weight:800}
+  .ablation-table .off{color:#e15c39;font-weight:800}
+  .ablation-table .delta{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--ink-faint)}
+  .src-note{font-size:11.5px;color:var(--ink-faint);margin-top:10px;font-family:'JetBrains Mono',monospace}
+
+  /* ============ PIPE WRAP (KEYVISUAL) ============ */
+  .pipe-wrap{margin-top:46px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px 24px;overflow-x:auto}
+  .pipe-wrap svg{display:block;margin:0 auto;min-width:760px}
+
+  /* ============ DEMO ============ */
+  .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:50px}
+  .video-frame{
+    aspect-ratio:16/10;border-radius:20px;border:2px dashed var(--line);
+    background:radial-gradient(120% 120% at 30% 10%, rgba(59,111,255,.08), transparent 50%),var(--surface);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px;
+    box-shadow:var(--shadow);transition:border-color .3s, transform .3s;cursor:pointer;
+  }
+  .video-frame:hover{border-color:var(--brand);transform:translateY(-4px)}
+  .play{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;box-shadow:0 14px 34px -10px rgba(59,111,255,.7)}
+  .play svg{margin-left:4px}
+  .video-frame .vt{font-weight:800;font-size:17px}
+  .video-frame .vs{font-size:13.5px;color:var(--ink-faint)}
+  .demo-points{display:flex;flex-direction:column;gap:18px}
+  .dp{display:flex;gap:14px;align-items:flex-start}
+  .dp .di{flex:0 0 40px;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:19px;background:linear-gradient(135deg,rgba(0,194,184,.14),rgba(59,111,255,.14));border:1px solid rgba(59,111,255,.18)}
+  .dp h4{font-size:16px;font-weight:800;margin-bottom:3px}
+  .dp p{font-size:14px;color:var(--ink-soft)}
+  @media(max-width:820px){.demo-grid{grid-template-columns:1fr}}
+
+  /* ============ TIMELINE / POSTMORTEM ============ */
+  .tl{margin-top:50px;position:relative;padding-left:30px}
+  .tl::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--brand),var(--brand-2))}
+  .tl-item{position:relative;padding:0 0 30px 26px}
+  .tl-item::before{content:'';position:absolute;left:-30px;top:5px;width:16px;height:16px;border-radius:50%;background:var(--surface);border:3px solid var(--brand);box-shadow:0 0 0 4px var(--bg)}
+  .tl-item h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px}
+  .tl-item p{font-size:14.5px;color:var(--ink-soft)}
+  .tl-item .res{display:inline-block;margin-top:8px;font-size:13px;font-weight:700;color:#079e95;background:rgba(0,194,184,.08);border:1px solid rgba(0,194,184,.22);padding:5px 12px;border-radius:9px}
+
+  /* ============ STACK ============ */
+  .stack-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:46px}
+  .scol h4{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px}
+  .scol ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .scol li{font-size:14.5px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:11px 15px;border-radius:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:9px}
+  .scol li .b{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+  @media(max-width:860px){.stack-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.stack-grid{grid-template-columns:1fr}}
+
+  /* ============ CTA / FOOTER ============ */
+  .final{padding:90px 0;text-align:center}
+  .final-card{
+    background:linear-gradient(135deg,#0e1733,#1a1450);border-radius:30px;padding:64px 40px;color:#fff;
+    box-shadow:var(--shadow-lg);position:relative;overflow:hidden;
+  }
+  .final-card::before{content:'';position:absolute;inset:0;background:radial-gradient(80% 120% at 80% 0%, rgba(0,194,184,.25), transparent 50%),radial-gradient(70% 120% at 10% 100%, rgba(122,92,255,.35), transparent 50%)}
+  .final-card>*{position:relative}
+  .final-card h2{font-size:clamp(28px,4vw,42px);font-weight:900;letter-spacing:-.02em;margin-bottom:14px}
+  .final-card p{font-size:17px;color:#bcc8ec;max-width:520px;margin:0 auto 30px}
+  .final-card .hero-cta{justify-content:center}
+  .btn-light{background:#fff;color:var(--ink)}
+  .btn-line{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3)}
+  footer{padding:40px 0;border-top:1px solid var(--line);text-align:center;color:var(--ink-faint);font-size:13.5px}
+  footer .brand{justify-content:center;color:var(--ink-soft);margin-bottom:10px}
+  footer .contact{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:12px 0 4px;font-size:13.5px}
+  footer .contact a{color:var(--ink-soft);font-weight:600}
+  footer .contact a:hover{color:var(--brand)}
+
+  /* author credit */
+  .author{display:inline-flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 6px;box-shadow:var(--shadow);margin-bottom:22px}
+  .author .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;letter-spacing:-.02em}
+  .author .who{display:flex;flex-direction:column;line-height:1.25;padding-right:8px}
+  .author .who b{font-size:14px;font-weight:800;letter-spacing:-.01em}
+  .author .who span{font-size:11.5px;color:var(--ink-faint);font-weight:600}
+
+  /* meta band */
+  .band{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .band-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:46px;align-items:center;padding:64px 0}
+  .band .lead-q{font-size:clamp(20px,2.4vw,27px);font-weight:800;letter-spacing:-.02em;line-height:1.4;margin-bottom:16px}
+  .band .lead-q .mk{background:linear-gradient(120deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .band p.body{font-size:15.5px;color:var(--ink-soft);max-width:600px}
+  .meta-card{background:linear-gradient(180deg,var(--bg-soft),var(--surface));border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow)}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .meta-row:last-child{border-bottom:none}
+  .meta-row .k{color:var(--ink-faint);font-weight:700}
+  .meta-row .v{color:var(--ink);font-weight:700;text-align:right}
+  .meta-row .v small{display:block;font-size:11.5px;color:var(--ink-faint);font-weight:600}
+  @media(max-width:820px){.band-grid{grid-template-columns:1fr;gap:30px;padding:50px 0}}
+
+  /* ============ FORMULA BOX ============ */
+  .formula-box{background:#0c1124;border-radius:16px;padding:24px 28px;margin-top:16px;border:1px solid #1e2a44;font-family:'JetBrains Mono',monospace;font-size:14px;color:#d8e0f5;line-height:1.9;overflow-x:auto}
+  .formula-box .f-main{font-size:16px;font-weight:700;color:#7aa2ff;margin-bottom:8px}
+  .formula-box .f-sub{font-size:12.5px;color:#5f6f96}
+  .formula-box .f-val{color:#ffc56e}
+  .formula-box .f-kw{color:#7aa2ff}
+  .formula-box .f-str{color:#5fd9b0}
+  .formula-box .f-note{font-size:12px;color:#5f7099;margin-top:10px;border-top:1px solid #1e2a44;padding-top:10px}
+
+  /* ============ THESIS BANNER ============ */
+  .thesis-banner{
+    background:linear-gradient(135deg,rgba(59,111,255,.07),rgba(0,194,184,.05));
+    border:1px solid rgba(59,111,255,.20);border-radius:14px;padding:16px 20px;margin-top:40px;
+  }
+  .thesis-banner .tb-label{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+  .thesis-banner p{font-size:14px;color:var(--ink-soft)}
+
+  /* ============ 한국어 줄바꿈 자연화 ============ */
+  /* 한글 단어 중간 끊김 방지 + 긴 영문/URL 예외 허용 */
+  body,
+  p, li, dt, dd, figcaption, blockquote,
+  .section-sub, .lead, .hero p,
+  .card, .kpi-val, .kpi-label,
+  .feature-text, .phase-desc, .step-desc,
+  .thesis-banner p {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  /* 헤딩: 양쪽 균형 줄바꿈 */
+  h1, h2, h3, h4, h5, h6,
+  .section-title, .eyebrow {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+  /* 본문 단락: 마지막 줄 고아 단어 방지 */
+  p, .section-sub, .lead, .hero p,
+  .feature-text, .phase-desc, .step-desc,
+  .thesis-banner p {
+    text-wrap: pretty;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-inner">
+    <div class="brand"><span class="logo">📚</span> 북켓몬</div>
+    <div class="nav-links">
+      <a href="#problem">문제·역할</a>
+      <a href="#features">핵심 기능</a>
+      <a href="#decisions">설계 결정</a>
+      <a href="#architecture">아키텍처</a>
+      <a href="#results">결과</a>
+      <a href="#stack">기술 스택</a>
+    </div>
+    <a class="nav-cta" href="https://github.com/ljhljh0703-cmd/AI-Book-Curation" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">AI Book Curation · 부트캠프 팀 프로젝트</span>
+      <h1>추천 수식을 직접 설계하고,<br/><span class="grad">효과를 데이터로 증명</span>했다</h1>
+      <p class="lead">기획자가 <code style="font-family:JetBrains Mono;font-size:16px;background:var(--bg-soft);padding:2px 8px;border-radius:7px;border:1px solid var(--line)">S = w₁·S_personal + w₂·S_pop + w₃·S_recency</code> 수식을 직접 설계하고, 18개 쿼리 ablation 하네스로 룰 ON/OFF 효과를 정량화했습니다.</p>
+      <div class="author">
+        <span class="av">이주</span>
+        <span class="who"><b>이주형 · Lee Ju Hyeong</b><span>팀장 · FE·BE·AI 3직군 크로스팀 협업 · AI 추천 파이프라인 설계·평가 본인 주도</span></span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="https://youtu.be/9ZVoAvCKdoI" target="_blank" rel="noopener">▶ 데모 영상 보기</a>
+        <a class="btn btn-ghost" href="https://ljhljh0703-cmd.github.io/AI-Book-Curation/" target="_blank" rel="noopener">🎤 라이브 피치</a>
+      </div>
+      <div class="hero-badges">
+        <span class="chip"><span class="dot"></span>작동 프로토타입 · 오프라인 평가 완료</span>
+        <span class="chip"><span class="dot"></span>부트캠프 FE·BE·AI 크로스팀</span>
+        <span class="chip"><span class="dot"></span>2-Stage Retrieve→Rerank · GTE Reranker</span>
+      </div>
+    </div>
+
+    <!-- PIPELINE DIAGRAM -->
+    <div class="pipe-diagram">
+      <div class="pd-title">Recommendation Pipeline · 2-Stage Retrieve→Rerank</div>
+      <div class="pd-flow">
+        <div class="pd-node"><span class="pd-icon">🔍</span><span class="pd-text"><span class="pt">질의 정제</span><span class="ps">HCX llm_search_query</span></span></div>
+        <div class="pd-arrow"><div class="line"></div><div class="lbl">Top-50 candidate</div></div>
+        <div class="pd-node"><span class="pd-icon">🗄️</span><span class="pd-text"><span class="pt">Stage 1 — Bi-encoder Retrieve</span><span class="ps">KURE/CLOVA · 1,024d Cosine · Qdrant</span></span></div>
+        <div class="pd-arrow"><div class="line"></div><div class="lbl">LightFM + 동적가중치 → Top-20</div></div>
+        <div class="pd-node"><span class="pd-icon">⚖️</span><span class="pd-text"><span class="pt">룰 기반 재정렬</span><span class="ps">cold/warm 전환 · 장르·오디언스·부정선호 필터</span></span></div>
+        <div class="pd-arrow"><div class="line"></div><div class="lbl">Top-10 → LLM 배치</div></div>
+        <div class="pd-node highlight"><span class="pd-icon">🤖</span><span class="pd-text"><span class="pt">Stage 2 — Cross-encoder Rerank</span><span class="ps hi">GTE Reranker(전용서버) + HCX 배치리랭킹 → Top-3</span></span></div>
+        <div class="pd-arrow"><div class="line"></div><div class="lbl">최종 추천</div></div>
+        <div class="pd-node"><span class="pd-icon">📖</span><span class="pd-text"><span class="pt">도서관 대출 연동</span><span class="ps">data4library.kr 실시간 연결</span></span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="wrap stats-grid">
+    <div class="stat reveal">
+      <div class="num">97.78%</div>
+      <div class="lbl">Top-5 Precision — 룰 ON <span class="badge-real">[실측]</span></div>
+      <div class="src">성능평가 §4 룰 ablation · 룰 OFF 시 84.44%</div>
+    </div>
+    <div class="stat reveal">
+      <div class="num">2.22%</div>
+      <div class="lbl">Top-5 Bad Rate — 룰 ON <span class="badge-real">[실측]</span></div>
+      <div class="src">성능평가 §4 · 룰 OFF 시 15.56%</div>
+    </div>
+    <div class="stat reveal">
+      <div class="num">+1.05%p</div>
+      <div class="lbl">KURE vs CLOVA Precision@50 <span class="badge-real">[실측]</span></div>
+      <div class="src">성능평가 §8.2 · 레이턴시 비용 +590ms — 트레이드오프 선택</div>
+    </div>
+    <div class="stat reveal">
+      <div class="num">577ms</div>
+      <div class="lbl">최적 조합 Top-5 응답속도 <span class="badge-real">[실측]</span></div>
+      <div class="src">성능평가 §9 · 오프라인 평가 기준 (실서비스 단정 아님)</div>
+    </div>
+  </div>
+</section>
+
+<!-- BACKGROUND / PROJECT META -->
+<section class="band" id="problem">
+  <div class="wrap band-grid">
+    <div>
+      <span class="eyebrow reveal">Problem Space</span>
+      <p class="lead-q reveal" style="margin-top:16px">"도서 추천 서비스는 좋은 책을 보여주는 데는 성공하지만,<br/><span class="mk">다시 돌아올 이유를 주지 못한다.</span>"</p>
+      <p class="body reveal">dense 벡터 검색만으로는 오디언스 미스매치(성인 질의에 어린이 도서가 상위 노출)를 막지 못했습니다. 추천 정확도(AI 파이프라인)와 재방문 동기(게이미피케이션)를 별도로 설계하고, XP 트리거를 추천 소비 행동에 연결했습니다. "AI 추천 → 책 읽기 → 독서 기록(XP) → 북켓몬 성장 → 더 정교한 추천" 루프입니다.</p>
+      <p style="font-size:12.5px;color:var(--ink-faint);margin-top:12px;font-family:'JetBrains Mono',monospace">※ 외부 인용 참고치(성과 수치 아님): 소비자 80% 개인화 선호(Epsilon, 2017) <span class="badge-ext">[외부통계]</span> · 모바일 앱 30일 리텐션 6~8%(AppsFlyer, 2023) <span class="badge-ext">[외부통계]</span></p>
+    </div>
+    <div class="meta-card reveal">
+      <div class="meta-row"><span class="k">역할</span><span class="v">팀장 · 기획 리드 · AI 추천 파이프라인<small>설계·평가 하네스·수식 설계 본인 주도</small></span></div>
+      <div class="meta-row"><span class="k">내 기여</span><span class="v">FE·BE·AI 3직군 팀장 협업<small>RDB 17테이블 설계 · 평가 하네스 · 수식 본인 주도</small></span></div>
+      <div class="meta-row"><span class="k">기간</span><span class="v">2026.03 ~ 05<small>3개월 · 부트캠프 종합 프로젝트</small></span></div>
+      <div class="meta-row"><span class="k">팀</span><span class="v">FE · BE · AI 크로스팀<small>GitLab 협업 · 실명 비공개</small></span></div>
+      <div class="meta-row"><span class="k">현재 상태</span><span class="v">작동 프로토타입<small>오프라인 평가 완료 · 데모 영상 존재</small></span></div>
+      <div class="meta-row"><span class="k">타사 자산</span><span class="v">HyperCLOVA X · data4library.kr<small>서비스 내 사용 · 재배포 아님</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- EMBEDDING BENCH CARD (신규 핵심 히어로 카드) -->
+<section class="pad" style="background:linear-gradient(180deg,var(--bg-soft),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow reveal">Embedding Benchmark</span>
+      <h2 class="section-title reveal">임베딩 모델 선택, 데이터로 결정했다</h2>
+      <p class="section-sub reveal">한국어 임베딩(문장을 숫자 벡터로 바꾼 표현) 2종을 동일 환경에서 Precision@50(상위 50개 중 적합 비율) 및 레이턴시로 직접 비교해 트레이드오프를 측정하고 선택에 반영했습니다.</p>
+    </div>
+    <div class="bench-card reveal" style="margin-top:50px">
+      <div class="bc-title">임베딩 벤치마크 · 성능평가 §8.2 · MTEB 프레임워크 기반 <span class="badge-real">[실측]</span></div>
+      <div class="bc-head">Precision@50 91.14% vs 90.09% — 품질 +1.05%p, 레이턴시 비용 +590ms</div>
+      <div class="bc-sub">Bi-encoder(질문·문서를 따로 임베딩해 빠르게 후보 압축) 단계의 임베딩 모델 선택은 추천 품질의 상한선을 결정합니다. 동일 Qdrant Top-50 환경에서 두 모델을 정량 비교해 트레이드오프를 데이터로 확정했습니다. — <em>임베딩 표준 벤치(MTEB, Muennighoff et al. 2022) 프레임워크 적용</em> <span class="badge-cite">[논문]</span></div>
+      <div class="bench-grid">
+        <div class="bench-model winner">
+          <div class="bm-label">선택 모델 (최종 사용)</div>
+          <div class="bm-name">KURE Embedding</div>
+          <div class="bench-metric"><span class="bk">Precision@50</span><span class="bv up">91.14%</span></div>
+          <div class="bench-metric"><span class="bk">vs CLOVA 대비</span><span class="bv up">+1.05%p</span></div>
+          <div class="bench-metric"><span class="bk">레이턴시 비용</span><span class="bv warn">+590ms</span></div>
+          <div class="bench-metric"><span class="bk">선택 근거</span><span class="bv" style="font-size:12px">품질 우선 · 오프라인 프로토타입</span></div>
+        </div>
+        <div class="bench-model">
+          <div class="bm-label">비교 모델</div>
+          <div class="bm-name">CLOVA Embedding</div>
+          <div class="bench-metric"><span class="bk">Precision@50</span><span class="bv">90.09%</span></div>
+          <div class="bench-metric"><span class="bk">KURE 대비</span><span class="bv">−1.05%p</span></div>
+          <div class="bench-metric"><span class="bk">레이턴시 이점</span><span class="bv up">−590ms</span></div>
+          <div class="bench-metric"><span class="bk">적합 시나리오</span><span class="bv" style="font-size:12px">실서비스 레이턴시 우선 시</span></div>
+        </div>
+      </div>
+      <div class="bench-note">※ 동일 평가 환경 비교 · 성능평가 §8.2 [실측] · KURE = 한국어 임베딩 모델, 출처 자체검증 완료 / 논문 인용 보류 · 트레이드오프 선택은 프로젝트 컨텍스트(오프라인 프로토타입, 품질 우선)에 의거</div>
+    </div>
+
+    <!-- 2-Stage Retrieve→Rerank 설명 -->
+    <div style="margin-top:50px">
+      <div class="center">
+        <span class="eyebrow reveal">2-Stage Retrieve → Rerank</span>
+        <h2 class="section-title reveal" style="font-size:clamp(22px,3vw,34px)">Reranker를 파이프라인에 분리 운영한 이유</h2>
+      </div>
+      <div class="card reveal" style="margin-top:30px;max-width:820px;margin-left:auto;margin-right:auto">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+          <div>
+            <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);margin-bottom:10px">Stage 1 · Bi-encoder (빠름)</div>
+            <p style="font-size:14px;color:var(--ink-soft)">KURE Embedding으로 Qdrant Top-50을 빠르게 추출합니다. 벡터 내적만으로 계산하므로 대규모 코퍼스에서도 레이턴시를 낮게 유지합니다.</p>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#079e95;margin-bottom:10px">Stage 2 · Cross-encoder Rerank (정밀)</div>
+            <p style="font-size:14px;color:var(--ink-soft)">GTE Reranker(검색 결과를 다시 정밀 정렬) 전용 서버에서 쿼리-문서 쌍의 전체 문맥을 비교합니다. Cross-encoder(질문·문서를 함께 넣어 정밀 채점) 방식이라 bi-encoder보다 정밀하지만, 후보를 좁힌 뒤에만 적용해 비용을 제어합니다.</p>
+          </div>
+        </div>
+        <div style="margin-top:18px;padding:14px 16px;background:var(--bg-soft);border-radius:10px;border:1px solid var(--line)">
+          <p style="font-size:13px;color:var(--ink-soft)"><strong>설계 근거</strong> — 2-stage retrieve→rerank는 속도와 정확도 트레이드오프를 레이어로 분리하는 표준 구조입니다. <em>Nogueira &amp; Cho, Passage Re-ranking with BERT (2019)</em> <span class="badge-cite">[논문]</span>에서 정립됐고, GTE Reranker(BAAI FlagEmbedding 계열)는 production RAG(검색해서 그 내용으로 답하는 구조) 환경의 표준 컴포넌트입니다. HCX 배치 리랭킹과 병행해 최종 Top-3을 결정합니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="pad" id="features">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow reveal">What it does</span>
+      <h2 class="section-title reveal">핵심 기능</h2>
+      <p class="section-sub reveal">추천 파이프라인, 콜드스타트(데이터 없는 신규 유저 추천 문제) 전환, 게이미피케이션 리텐션을 하나의 제품으로 묶었습니다.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="card reveal">
+        <div class="ic">🎯</div>
+        <h3>다중 목표 추천 — 추천을 최적화 문제로 재정의</h3>
+        <p><code style="font-family:JetBrains Mono;font-size:12px">final_score = w₁·S_personal + w₂·S_pop + w₃·S_recency</code> 수식으로 개인화·대중성·신간 선호를 합산합니다. 추천을 단일 목표가 아니라 <em>다중 목표 최적화(여러 기준을 동시에 맞추는 최적화) 문제</em>로 재정의했습니다. 수식이 곧 구현 스펙이 되어 <code style="font-family:JetBrains Mono;font-size:12px">reranker.py</code>에 직결됩니다.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic">🌡️</div>
+        <h3>콜드스타트 동적 가중치 + Nemotron 시드</h3>
+        <p>신규 유저(대화&lt;20 AND 책&lt;3)는 cold 가중치(personal 0.1·pop 0.7·recency 0.2)로 대중성 위주 안전 추천을 제공합니다. <strong>NVIDIA Nemotron 한국인 합성 페르소나 100만 건(CC-BY-4.0)</strong>을 콜드스타트 시드와 LightFM(추천용 하이브리드 모델) 시뮬 평가에 활용해 실 유저 없는 환경에서 평가를 완료했습니다.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic">🔬</div>
+        <h3>18쿼리 ablation 하네스 — eval 설계 역량</h3>
+        <p>Q001~Q018(장르·독서목적·오디언스·부정선호 커버) 쿼리에 0/1/2점 인간 채점 기준을 확립하고 신호별 점수 컬럼을 분리했습니다. 버그 발견(오디언스 미스매치) → 신호 보강 → 정량 개선의 <em>측정 루프</em>를 직접 운영한 케이스입니다.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic">📊</div>
+        <h3>LightFM 후보 압축</h3>
+        <p>1,109 유저·7:2:1 분할 LightFM 개인화 모델로 Qdrant Top-50을 Top-20으로 압축했습니다. 긍정 선호 포착율 <strong>90.52%</strong>·비선호 노출 <strong>1.45%</strong> (test 기준) <span class="badge-real">[실측]</span>. LightFM val 46.84% · test 29.15% — val/test 간 gap도 정직하게 병기합니다.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic">🎮</div>
+        <h3>게이미피케이션 리텐션</h3>
+        <p>독서 기록(XP)·레벨업·진화 연출로 재방문 유인을 설계. <code style="font-family:JetBrains Mono;font-size:12px">SELECT FOR UPDATE</code> 행 수준 잠금으로 XP 동시성 Lost Update 방지, 진화 단계 역행 금지 불변식 구현.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic">📚</div>
+        <h3>도서관 대출 연동</h3>
+        <p>도서관정보나루(data4library.kr) 실시간 연동으로 추천 도서의 실제 대출 가능 여부를 즉시 확인. 추천이 실행 가능한 행동으로 연결됩니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DESIGN DECISIONS (3 Challenges) -->
+<section class="pad" id="decisions" style="background:linear-gradient(180deg,var(--bg-soft),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow reveal">Engineering Deep-Dive</span>
+      <h2 class="section-title reveal">3가지 핵심 설계 결정</h2>
+      <p class="section-sub reveal">기획 의도를 수치로 확정하고 설계 유효성을 데이터로 증명한 과정을 기록합니다.</p>
+    </div>
+    <div class="ch-list">
+
+      <div class="ch reveal">
+        <div class="ch-no">01</div>
+        <div class="ch-body">
+          <h3>추천 수식 직접 설계 — 다목표 최적화 재정의 <span class="tag">reranker.py · 수식→스펙</span></h3>
+          <div class="pp">
+            <div class="col why">
+              <div class="h">🤔 왜</div>
+              <p>기획 의도를 모호한 언어로 전달하면 구현 오차가 생긴다. "개인화 위주"는 엔지니어마다 해석이 다르다. 추천을 <em>다중 목표 최적화(S_personal·S_pop·S_recency 가중합)</em>로 명시화해야 스펙이 구현에 직결된다.</p>
+            </div>
+            <div class="col how">
+              <div class="h">✓ 어떻게</div>
+              <p><code>final_score = w₁·S_personal + w₂·S_pop + w₃·S_recency</code>로 명시화. S_personal은 벡터·장르선호·행동이력을 0.5/0.3/0.2로 합산. 수식이 곧 구현 스펙이 되어 재협의 없이 코드에 직결됐다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ch reveal">
+        <div class="ch-no">02</div>
+        <div class="ch-body">
+          <h3>콜드스타트 동적 가중치 전환 <span class="tag">cold/warm · LightFM · Nemotron 시드</span></h3>
+          <div class="pp">
+            <div class="col why">
+              <div class="h">🤔 왜</div>
+              <p>취향 데이터 없는 신규 유저에게 개인화 벡터를 바로 적용하면 첫인상 품질이 급락한다. 콜드스타트 시드 없이는 모델이 무작위에 가깝게 추천한다. 실 유저 없는 평가 환경이라 시뮬 데이터가 필요했다.</p>
+            </div>
+            <div class="col how">
+              <div class="h">✓ 어떻게</div>
+              <p>신규(대화&lt;20 AND 책&lt;3): cold 가중치(personal 0.1·pop 0.7·recency 0.2)로 대중성 위주 추천. <strong>NVIDIA Nemotron 한국인 합성 페르소나(CC-BY-4.0, 100만 건)</strong>를 콜드스타트 시드·LightFM 시뮬 평가에 활용. 데이터 누적 후 warm(0.5·0.3·0.2)으로 전환.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ch reveal">
+        <div class="ch-no">03</div>
+        <div class="ch-body">
+          <h3>18쿼리 ablation 하네스 — eval 설계 역량 <span class="tag">Q001~Q018 · 인간 채점 · 0/1/2점</span></h3>
+          <div class="pp">
+            <div class="col why">
+              <div class="h">🤔 왜</div>
+              <p>데이터 없는 설계 주장은 증명이 아니다. dense 벡터 단독 검색은 오디언스 미스매치(성인 의도에 어린이 도서 노출)를 막지 못한다. Ablation(요소를 하나씩 빼보며 효과 확인) 하네스 없이는 신호 추가의 인과 기여를 분리할 수 없다.</p>
+            </div>
+            <div class="col how">
+              <div class="h">✓ 어떻게</div>
+              <p>Q001~Q018(장르·독서목적·오디언스·부정선호 커버), 0/1/2점 인간 채점 기준 확립, 신호별 점수 컬럼 분리 → 버그 발견(오디언스 미스매치) → 신호 보강 → 정량 개선. 룰 ON/OFF ablation으로 Top-5 Precision Δ+13.34%p·Bad Rate Δ−13.34%p 입증 [성능평가 §4].</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FORMULA BOX -->
+    <div class="formula-box reveal" style="margin-top:40px">
+      <div class="f-main">final_score = w₁ · S_personal + w₂ · S_pop + w₃ · S_recency</div>
+      <div>  <span class="f-kw">S_personal</span> = <span class="f-val">0.5</span>·vector_sim + <span class="f-val">0.3</span>·genre_pref + <span class="f-val">0.2</span>·behavior_hist</div>
+      <div>  <span class="f-kw">S_pop</span>      = log_normalize(library_checkout_count)  <span class="f-sub"># data4library.kr 대출통계</span></div>
+      <div>  <span class="f-kw">S_recency</span>  = exp_decay(publish_date)                 <span class="f-sub"># 지수 감쇠</span></div>
+      <div style="margin-top:12px;font-size:12px;color:#5f6f96">
+        Cold: (w₁=<span class="f-val">0.1</span>, w₂=<span class="f-val">0.7</span>, w₃=<span class="f-val">0.2</span>) → Warm: (w₁=<span class="f-val">0.5</span>, w₂=<span class="f-val">0.3</span>, w₃=<span class="f-val">0.2</span>)  <span class="f-sub"># 대화≥20 OR 책≥3 시 전환</span>
+      </div>
+      <div class="f-note">추천 = 다중 목표 최적화 — 개인화·대중성·신간 선호를 가중합으로 명시화해 기획 의도와 구현 스펙을 1:1로 연결.</div>
+    </div>
+
+    <!-- 테제 연결 -->
+    <div class="thesis-banner reveal">
+      <div class="tb-label">Retrieve-and-Rerank · 임베딩 벤치 = 평가 관점</div>
+      <p>2-stage retrieve→rerank(bi-encoder→cross-encoder)와 임베딩 벤치(KURE vs CLOVA Precision@50)는 모두 <em>평가 관점에서 선택을 측정한 사례</em>입니다. RAG를 만든 것이 아니라, RAG의 어느 레이어가 품질에 기여하는지를 실험으로 분리한 접근입니다. Agentic RAG·평가 설계 방향과 직결됩니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="pad arch" id="architecture">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow reveal">System Design</span>
+      <h2 class="section-title reveal">아키텍처 &amp; 데이터 흐름</h2>
+      <p class="section-sub reveal">질의에서 최종 추천까지 레이어별 역할을 분리해, ML 모델 교체 시 무중단 롤링 업데이트가 가능한 구조를 설계했습니다.</p>
+    </div>
+
+    <!-- SVG PIPELINE KEYVISUAL -->
+    <div class="pipe-wrap reveal">
+      <svg viewBox="0 0 1040 230" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="북켓몬 추천 파이프라인 전체 흐름 — 2-stage retrieve→rerank">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#3b6fff"/><stop offset="1" stop-color="#7a5cff"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#3b6fff"/><stop offset="1" stop-color="#00c2b8"/>
+          </linearGradient>
+          <marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#3b6fff"/>
+          </marker>
+          <marker id="ah2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#00c2b8"/>
+          </marker>
+        </defs>
+        <!-- arrows -->
+        <g stroke="#3b6fff" stroke-width="2.2" marker-end="url(#ah)" fill="none">
+          <line x1="152" y1="75" x2="182" y2="75"/>
+          <line x1="318" y1="75" x2="348" y2="75"/>
+          <line x1="484" y1="75" x2="514" y2="75"/>
+        </g>
+        <g stroke="#00c2b8" stroke-width="2.2" marker-end="url(#ah2)" fill="none">
+          <line x1="658" y1="75" x2="688" y2="75"/>
+          <line x1="818" y1="75" x2="848" y2="75"/>
+          <line x1="968" y1="75" x2="1000" y2="75" opacity="0"/>
+        </g>
+        <g font-family="Noto Sans KR, sans-serif">
+          <!-- 1 -->
+          <rect x="10" y="40" width="142" height="72" rx="14" fill="#f6f8fc" stroke="#e3e9f3"/>
+          <text x="81" y="70" text-anchor="middle" font-size="20">💬</text>
+          <text x="81" y="90" text-anchor="middle" font-size="11" font-weight="800" fill="#0e1525">사용자 질의</text>
+          <text x="81" y="106" text-anchor="middle" font-size="9.5" fill="#7a87a3">HCX 쿼리 정제</text>
+          <!-- 2 Stage 1 -->
+          <rect x="188" y="30" width="130" height="90" rx="14" fill="#f0f4ff" stroke="#c0d0f8" stroke-width="1.5"/>
+          <text x="253" y="56" text-anchor="middle" font-size="10" font-weight="800" fill="#3b6fff" letter-spacing="0.06em">STAGE 1</text>
+          <text x="253" y="73" text-anchor="middle" font-size="20">🗄️</text>
+          <text x="253" y="90" text-anchor="middle" font-size="11" font-weight="800" fill="#0e1525">Bi-encoder</text>
+          <text x="253" y="107" text-anchor="middle" font-size="9.5" fill="#7a87a3">KURE · Qdrant Top-50</text>
+          <!-- 3 LightFM+룰 -->
+          <rect x="354" y="40" width="130" height="72" rx="14" fill="#fff" stroke="#cdd9f5"/>
+          <text x="419" y="70" text-anchor="middle" font-size="20">⚖️</text>
+          <text x="419" y="90" text-anchor="middle" font-size="11" font-weight="800" fill="#0e1525">LightFM + 룰</text>
+          <text x="419" y="106" text-anchor="middle" font-size="9.5" fill="#7a87a3">cold/warm → Top-20</text>
+          <!-- 4 Stage 2 highlight -->
+          <rect x="520" y="25" width="138" height="100" rx="14" fill="#0c1e45" stroke="#3b6fff" stroke-width="2"/>
+          <text x="589" y="48" text-anchor="middle" font-size="10" font-weight="800" fill="#7aa2ff" letter-spacing="0.06em">STAGE 2</text>
+          <text x="589" y="66" text-anchor="middle" font-size="20">🤖</text>
+          <text x="589" y="84" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">Cross-encoder</text>
+          <text x="589" y="99" text-anchor="middle" font-size="9" fill="#8ea2c9">GTE Reranker</text>
+          <text x="589" y="113" text-anchor="middle" font-size="9" fill="#8ea2c9">+ HCX 배치리랭킹</text>
+          <!-- label arrow top -->
+          <line x1="520" y1="20" x2="658" y2="20" stroke="#3b6fff" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="589" y="16" text-anchor="middle" font-size="9" fill="#3b6fff">Nogueira &amp; Cho 2019</text>
+          <!-- 5 -->
+          <rect x="694" y="40" width="124" height="72" rx="14" fill="#fff" stroke="#bdeee9"/>
+          <text x="756" y="70" text-anchor="middle" font-size="20">📚</text>
+          <text x="756" y="90" text-anchor="middle" font-size="11" font-weight="800" fill="#0e1525">도서관 연동</text>
+          <text x="756" y="106" text-anchor="middle" font-size="9.5" fill="#7a87a3">data4library.kr</text>
+          <!-- 6 -->
+          <rect x="854" y="40" width="120" height="72" rx="14" fill="#f6f8fc" stroke="#e3e9f3"/>
+          <text x="914" y="70" text-anchor="middle" font-size="20">🎯</text>
+          <text x="914" y="90" text-anchor="middle" font-size="11" font-weight="800" fill="#0e1525">최종 추천</text>
+          <text x="914" y="106" text-anchor="middle" font-size="9.5" fill="#7a87a3">577ms [실측]</text>
+        </g>
+        <!-- arrow labels -->
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" fill="#7a87a3">
+          <text x="167" y="68">Top-50</text>
+          <text x="330" y="68">LightFM</text>
+          <text x="495" y="68">Top-10</text>
+          <text x="665" y="68">Top-3</text>
+          <text x="828" y="68">최종</text>
+        </g>
+        <text x="512" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a87a3">※ 성능평가 §9 최적 조합(llm_search_query × dense × current) 기준 · 오프라인 평가 · GTE Reranker = 전용 서버 분리 운영</text>
+      </svg>
+    </div>
+
+    <!-- Reranker 아키텍처 설명 -->
+    <div class="reranker-callout reveal" style="margin-top:30px;max-width:720px;margin-left:auto;margin-right:auto">
+      <div class="rc-label">GTE Reranker 전용 서버 분리 운영</div>
+      <p>HCX 배치 리랭킹(0~100 스코어 + 사유 생성) 외에 <code>gte-reranker-server</code>를 별도 서버로 분리 운영합니다. ML 모델을 교체할 때 Spring Boot 백엔드는 건드리지 않고 AI 서버만 롤링 업데이트합니다. 레이어 분리 설계의 일부입니다.</p>
+      <div class="cite-note">근거: Nogueira &amp; Cho, Passage Re-ranking with BERT (2019) — bi-encoder(빠른 후보 압축) + cross-encoder(정밀 재정렬) 2-stage 표준 정립 <span class="badge-cite">[논문]</span></div>
+    </div>
+
+    <!-- LAYER FLOW -->
+    <div class="flow" style="margin-top:36px">
+      <div class="node reveal">
+        <div class="tier">① React Frontend</div>
+        <h4>사용자 인터페이스 &amp; 인증</h4>
+        <p>React + Vite SPA. Google/Kakao OAuth 2.0 소셜 로그인. 북켓몬 진화 연출·XP 대시보드 포함.</p>
+        <div class="tags"><span>React 18</span><span>Vite</span><span>TypeScript</span><span>Google/Kakao OAuth</span></div>
+      </div>
+      <div class="arrow"><span class="lbl">HTTP API</span></div>
+      <div class="node reveal">
+        <div class="tier">② Spring Boot — API Gateway</div>
+        <h4>인증 · 라우팅 · 비즈니스 로직</h4>
+        <p>JWT Refresh Rotation·Redis 블랙리스트로 인증을 관리합니다. XP 엔진(<code style="font-family:JetBrains Mono;font-size:12px">SELECT FOR UPDATE</code> 행 잠금)·소셜 매칭(O(N×K) Qdrant Top-K로 최적화)을 직접 구현했습니다. RDB 17개 테이블 설계를 주도했습니다.</p>
+        <div class="tags"><span>Java 21</span><span>Spring Boot 3</span><span>Spring Security</span><span>JPA</span><span>PostgreSQL+PostGIS</span></div>
+      </div>
+      <div class="arrow"><span class="lbl">Internal API</span></div>
+      <div class="node reveal">
+        <div class="tier">③ FastAPI — AI Server (2-Stage Retrieve→Rerank)</div>
+        <h4>벡터 추론 · 추천 파이프라인 · GTE Reranker</h4>
+        <p>Spring Boot(비즈니스)↔FastAPI(AI) 레이어를 분리했습니다. Stage 1 bi-encoder(KURE·Qdrant) → Stage 2 cross-encoder(GTE Reranker 전용서버 + HCX 배치리랭킹) 순서로 추천이 흐릅니다. ML 모델 교체 시 AI 서버만 롤링 업데이트합니다. APScheduler로 대출 통계를 주기 갱신합니다.</p>
+        <div class="tags"><span>Python 3.11</span><span>FastAPI</span><span>LightFM</span><span>GTE Reranker</span><span>APScheduler</span><span>Qdrant</span></div>
+      </div>
+      <div class="arrow"><span class="lbl">Vector / Cache</span></div>
+      <div class="node reveal">
+        <div class="tier">④ 데이터 레이어</div>
+        <h4>PostgreSQL · Qdrant · Redis — 역할 분리</h4>
+        <p>PostgreSQL(17개 테이블 · 사용자·XP·도서 RDB)·Qdrant(10만 벡터 · 1,024차원 Cosine)·Redis(세션·캐시)로 역할을 나눴습니다. Docker Compose · K3s · GitLab CI/CD · Cloudflare · NAS 인프라 위에서 운영합니다.</p>
+        <div class="tags"><span>PostgreSQL+PostGIS</span><span>Qdrant</span><span>Redis</span><span>Docker Compose</span><span>K3s</span><span>GitLab CI/CD</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS / ABLATION -->
+<section class="pad" id="results">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow reveal">Results</span>
+      <h2 class="section-title reveal">측정된 결과</h2>
+      <p class="section-sub reveal">설계가 실제로 효과 있었는지를 데이터로 확인한 기록입니다. 수치는 오프라인 평가 기준이며 실서비스 성능을 단정하지 않습니다.</p>
+
+    </div>
+
+    <!-- ABLATION TABLE -->
+    <div class="ablation-wrap reveal">
+      <div class="ablation-title">룰 ON vs OFF ablation — Top-5 성능 비교 <span class="badge-real">[실측 | 성능평가 §4]</span></div>
+      <table class="ablation-table">
+        <thead>
+          <tr>
+            <th>조건</th>
+            <th>Precision@5</th>
+            <th>Bad Rate@5</th>
+            <th>Δ Precision</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>룰 ON</b> (장르·오디언스·부정선호 필터 활성)</td>
+            <td class="on">97.78%</td>
+            <td class="on">2.22%</td>
+            <td class="delta">—</td>
+          </tr>
+          <tr>
+            <td><b>룰 OFF</b> (벡터+가중치만)</td>
+            <td class="off">84.44%</td>
+            <td class="off">15.56%</td>
+            <td class="delta">Δ −13.34%p</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="src-note">※ 18개 쿼리(Q001~Q018) · 0/1/2점 인간 채점 · Top-5 기준. 오프라인 평가이며 실서비스 A/B 테스트는 미완.</div>
+    </div>
+
+    <!-- 추가 정량 결과 -->
+    <div class="feat-grid" style="margin-top:40px">
+      <div class="card reveal">
+        <div class="ic">🔢</div>
+        <h3>LightFM 후보 압축</h3>
+        <p>1,109 유저 · 7:2:1 분할 · Qdrant 호출 없는 오프라인 50개 채점 환경.<br/>긍정 선호 포착율 <b>90.52%</b> · 비선호 노출 <b>1.45%</b> (test 기준).</p>
+        <p style="font-size:12px;color:var(--ink-faint);margin-top:8px;font-family:'JetBrains Mono',monospace">LightFM val 46.84% · test 29.15% — val/test 간 gap 정직 병기. [실측 | LightFM val/test metrics]</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic">🆚</div>
+        <h3>임베딩 벤치마크 — 모델 선택을 데이터로</h3>
+        <p>KURE Precision@50 <b>91.14%</b> vs CLOVA <b>90.09%</b> (Δ+1.05%p).<br/>레이턴시 비용 <b>+590ms</b> — 품질 vs 속도 트레이드오프를 실측해 선택에 반영.</p>
+        <p style="font-size:12px;color:var(--ink-faint);margin-top:8px;font-family:'JetBrains Mono',monospace">[실측 | 성능평가 §8.2] · MTEB 프레임워크 적용 <span class="badge-cite">[논문]</span></p>
+      </div>
+      <div class="card reveal">
+        <div class="ic">⚙️</div>
+        <h3>최적 조합 상세 — 오프라인 기준</h3>
+        <p>llm_search_query × dense × current 조합 Top-5: Precision 100% · Bad Rate 0% · 응답 577ms.</p>
+        <p style="font-size:12px;color:var(--ink-faint);margin-top:8px;font-family:'JetBrains Mono',monospace">[실측 | 성능평가 §9] · 오프라인 특정 조합 평가 기준. 캡션 유지 — 실서비스 성능 단정 아님.</p>
+      </div>
+    </div>
+
+    <!-- 정성 결과 -->
+    <div style="margin-top:50px">
+      <h3 style="font-size:22px;font-weight:900;letter-spacing:-.01em;margin-bottom:20px" class="reveal">정성적 성과</h3>
+      <div class="ch-list">
+        <div class="ch reveal">
+          <div class="ch-no" style="font-size:18px">✓</div>
+          <div class="ch-body" style="padding:20px 24px">
+            <h3 style="font-size:17px">"eval 설계 역량" 증명 — 18쿼리 ablation 하네스</h3>
+            <p style="font-size:14px;color:var(--ink-soft)">Q001~Q018 인간 채점 하네스를 설계하고 버그(오디언스 미스매치) 발견 → 신호 보강 → 정량 개선 루프를 직접 운영했습니다. 추천을 만든 것이 아니라 eval 루프를 운영한 케이스입니다. 동일 방법론을 게임 도메인 LLM 벤치마크 설계에 적용할 수 있습니다.</p>
+          </div>
+        </div>
+        <div class="ch reveal">
+          <div class="ch-no" style="font-size:18px">✓</div>
+          <div class="ch-body" style="padding:20px 24px">
+            <h3 style="font-size:17px">레이어 분리로 무중단 롤링 업데이트 구조</h3>
+            <p style="font-size:14px;color:var(--ink-soft)">Spring Boot(비즈니스)↔FastAPI(AI) 분리로 ML 모델 교체 시 백엔드 변경 없이 AI 서버만 롤링 업데이트합니다. <code style="font-family:JetBrains Mono;font-size:12px">SELECT FOR UPDATE</code> 행 수준 잠금으로 XP 동시성 Lost Update를 방지하고, 진화 단계 역행 금지 불변식을 구현했습니다.</p>
+          </div>
+        </div>
+        <div class="ch reveal">
+          <div class="ch-no" style="font-size:18px">✓</div>
+          <div class="ch-body" style="padding:20px 24px">
+            <h3 style="font-size:17px">소셜 매칭 복잡도 개선 · RDB 17테이블 설계</h3>
+            <p style="font-size:14px;color:var(--ink-soft)">소셜 매칭 복잡도를 O(N²)에서 O(N×K)로 개선했습니다(Qdrant Top-K 활용). RDB 17개 테이블 설계(사용자·XP·도서·상호작용 스키마)를 주도했습니다. 도서 벡터 약 10만 건(1,024차원 Cosine) [실측 | 프로젝트 명세].</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="pad" id="demo" style="background:linear-gradient(180deg,var(--bg-soft),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow reveal">See it in action</span>
+      <h2 class="section-title reveal">데모 &amp; 산출물</h2>
+    </div>
+    <div class="demo-grid">
+      <a class="video-frame reveal" href="https://youtu.be/9ZVoAvCKdoI" target="_blank" rel="noopener">
+        <div class="play">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="vt">데모 영상 보기 ↗</div>
+        <div class="vs">Google Drive mp4 · 북켓몬 서비스 전체 흐름</div>
+      </a>
+      <div class="demo-points">
+        <div class="dp reveal">
+          <div class="di">🤖</div>
+          <div>
+            <h4>AI 추천 파이프라인 데모</h4>
+            <p>질의 입력부터 HCX 정제·Qdrant 벡터 검색·동적 가중치 재정렬·GTE Reranker를 거쳐 최종 추천이 나오기까지 전체 흐름을 확인할 수 있습니다.</p>
+          </div>
+        </div>
+        <div class="dp reveal">
+          <div class="di">🎮</div>
+          <div>
+            <h4>북켓몬 진화 연출</h4>
+            <p>독서 기록으로 XP를 쌓고 북켓몬이 진화합니다. 재방문 유인을 게이미피케이션으로 설계한 리텐션 루프입니다.</p>
+          </div>
+        </div>
+        <div class="dp reveal">
+          <div class="di">📋</div>
+          <div>
+            <h4>라이브 피치 — GitHub Pages</h4>
+            <p><a href="https://ljhljh0703-cmd.github.io/AI-Book-Curation/" target="_blank" rel="noopener" style="color:var(--brand);font-weight:700">ljhljh0703-cmd.github.io/AI-Book-Curation ↗</a><br/>파이프라인 아키텍처 피치 HTML.</p>
+          </div>
+        </div>
+        <div class="dp reveal">
+          <div class="di">📁</div>
+          <div>
+            <h4>전체 산출물 패키지</h4>
+            <p><a href="https://drive.google.com/drive/folders/1DByy4oU3Q_HryDCB1FZCWQPe92M3bt0f" target="_blank" rel="noopener" style="color:var(--brand);font-weight:700">Drive 폴더 ↗</a> — 컨셉 PDF · 2차 PoC 명세 · 성능평가 보고서.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RETROSPECTIVE -->
+<section class="pad" style="background:linear-gradient(180deg,var(--bg-soft),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow reveal">Retrospective</span>
+      <h2 class="section-title reveal">한계 &amp; 다음 단계</h2>
+      <p class="section-sub reveal">오프라인 평가로 측정한 것과 측정하지 못한 것을 솔직하게 기록합니다.</p>
+
+    </div>
+    <div class="tl">
+      <div class="tl-item reveal">
+        <h4>행동·개인화 신호 효과 — 제한적 측정</h4>
+        <p>룰 ablation에서 행동·개인화 신호(리뷰·서재·audience) 효과는 "프로필 제외 평가" 구조상 제한적으로 측정됐습니다. 행동 신호 효과를 검증하려면 실제 유저 로그 기반 온라인 평가가 필요합니다.</p>
+        <span class="res">→ 온라인 A/B 테스트 인프라 구성 → 룰·가중치 실시간 검증 루프 필요</span>
+      </div>
+      <div class="tl-item reveal">
+        <h4>LightFM 오프라인 근사 — 실서비스 루프와 차이 존재 · val/test 간 gap</h4>
+        <p>LightFM candidate-eval은 Qdrant 호출 없는 오프라인 근사(50개 채점) 기준입니다. val 46.84% · test 29.15% — 두 수치를 함께 보고하며, 실서비스 추천 루프와 완전히 동일한 환경 평가는 미완입니다.</p>
+        <span class="res">→ Qdrant 연동 온라인 평가 루프 구성 필요</span>
+      </div>
+      <div class="tl-item reveal">
+        <h4>최적 조합 Precision 100%·Bad Rate 0% — 오프라인 특정 구성 결과, 캡션 유지</h4>
+        <p>성능평가 §9 최적 조합(llm_search_query × dense × current) Top-5 결과는 오프라인 특정 구성 평가 기준입니다. 모든 조합·실서비스 환경에서의 성능을 단정하지 않으며, 이 캡션은 정직성 원칙에 따라 유지합니다.</p>
+        <span class="res">→ 다양한 조합·실서비스 조건에서 추가 검증 필요</span>
+      </div>
+      <div class="tl-item reveal">
+        <h4>RAGAS(RAG 평가 프레임워크) — 다음 단계 / 미구현 정직 표기</h4>
+        <p>현재 평가는 인간 채점 기반 질의-추천 적합성 중심입니다. RAGAS(Es et al., arXiv:2309.15217, 2023)의 faithfulness·answer_relevancy·context_recall 지표는 미측정입니다. HCX 리랭킹 단계의 hallucinate 여부를 정량화하는 데 적합하지만, 현재 미구현 상태입니다.</p>
+        <span class="res">→ 향후 온라인 A/B 테스트와 병행해 RAGAS 기반 retrieval 품질 평가 적용 계획</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section class="pad" id="stack">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow reveal">Tech Stack</span>
+      <h2 class="section-title reveal">기술 스택</h2>
+    </div>
+    <div class="stack-grid">
+      <div class="scol reveal">
+        <h4>AI / LLM</h4>
+        <ul>
+          <li><span class="b" style="background:#7a5cff"></span>HyperCLOVA X</li>
+          <li><span class="b" style="background:#7a5cff"></span>KURE Embedding</li>
+          <li><span class="b" style="background:#7a5cff"></span>GTE Reranker</li>
+          <li><span class="b" style="background:#7a5cff"></span>LightFM</li>
+        </ul>
+      </div>
+      <div class="scol reveal">
+        <h4>Backend</h4>
+        <ul>
+          <li><span class="b" style="background:#3b6fff"></span>Java 21 · Spring Boot 3</li>
+          <li><span class="b" style="background:#3b6fff"></span>Spring Security · JPA</li>
+          <li><span class="b" style="background:#3b6fff"></span>Python 3.11 · FastAPI</li>
+          <li><span class="b" style="background:#3b6fff"></span>APScheduler</li>
+        </ul>
+      </div>
+      <div class="scol reveal">
+        <h4>Frontend</h4>
+        <ul>
+          <li><span class="b" style="background:#00c2b8"></span>React 18</li>
+          <li><span class="b" style="background:#00c2b8"></span>Vite</li>
+          <li><span class="b" style="background:#00c2b8"></span>TypeScript</li>
+        </ul>
+      </div>
+      <div class="scol reveal">
+        <h4>Infra / Data</h4>
+        <ul>
+          <li><span class="b" style="background:#ff8e72"></span>PostgreSQL+PostGIS</li>
+          <li><span class="b" style="background:#ff8e72"></span>Qdrant (1,024d)</li>
+          <li><span class="b" style="background:#ff8e72"></span>Redis</li>
+          <li><span class="b" style="background:#ff8e72"></span>Docker · K3s · GitLab CI/CD</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final">
+  <div class="wrap">
+    <div class="final-card reveal">
+      <h2>추천 수식을 설계하고, 데이터로 증명했다</h2>
+      <p>북켓몬은 기획 의도를 수식으로 명시화하고 18쿼리 ablation 하네스로 효과를 실측한 케이스입니다. GTE Reranker·임베딩 벤치·콜드스타트, 각 선택의 근거는 데이터로 남아 있습니다.</p>
+      <div class="hero-cta">
+        <a class="btn btn-light" href="https://youtu.be/9ZVoAvCKdoI" target="_blank" rel="noopener">▶ 데모 영상</a>
+        <a class="btn btn-line" href="https://github.com/ljhljh0703-cmd/AI-Book-Curation" target="_blank" rel="noopener">GitHub 저장소</a>
+        <a class="btn btn-line" href="https://ljhljh0703-cmd.github.io/AI-Book-Curation/" target="_blank" rel="noopener">🎤 라이브 피치</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand"><span class="logo">📚</span> 북켓몬 (AI Book Curation)</div>
+    <div>AI 개인화 도서 큐레이션 · 부트캠프 FE·BE·AI 크로스팀 종합 프로젝트 · 2026.03~05</div>
+    <div class="contact">
+      <span>이주형 · Lee Ju Hyeong</span>
+      <a href="mailto:ljhljh0703@gmail.com">ljhljh0703@gmail.com</a>
+      <a href="https://github.com/ljhljh0703-cmd/AI-Book-Curation" target="_blank" rel="noopener">github.com/ljhljh0703-cmd/AI-Book-Curation</a>
+    </div>
+    <div style="margin-top:8px;font-size:12.5px">© 2026 이주형 · HyperCLOVA X · Qdrant · LightFM · data4library.kr 서비스 내 사용 · 재배포 아님</div>
+    <div style="margin-top:6px;font-size:11.5px;color:var(--ink-faint);font-family:'JetBrains Mono',monospace">논문 인용: Nogueira &amp; Cho (2019) Passage Re-ranking with BERT · MTEB Muennighoff et al. (2022) · RAGAS Es et al. arXiv:2309.15217 (2023)</div>
+  </div>
+</footer>
+
+<script>
+  // Nav shadow on scroll
+  const nav = document.getElementById('nav');
+  addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 12));
+
+  // Reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Stagger reveals that share a parent row
+  document.querySelectorAll('.feat-grid, .stats-grid, .ch-list, .demo-points, .stack-grid, .tl').forEach(group => {
+    [...group.children].forEach((child, i) => {
+      child.style.transitionDelay = (i * 70) + 'ms';
+    });
+  });
+</script>
+</body>
+</html>
