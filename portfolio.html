@@ -380,18 +380,18 @@
   .rl-presets button:hover{border-color:var(--brand);color:var(--brand)}
   .rl-presets button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
   .rl-list{display:flex;flex-direction:column;gap:9px}
-  .bk{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:14px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);transition:border-color .3s,background .3s}
-  .bk.top{border-color:var(--brand);background:linear-gradient(90deg,rgba(59,111,255,.06),rgba(122,92,255,.04))}
-  .bk .rk{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px;color:var(--ink-faint);text-align:center}
-  .bk.top .rk{color:var(--brand)}
-  .bk .info .tt{font-size:14.5px;font-weight:700}
-  .bk .info .br{height:7px;border-radius:999px;background:var(--bg-soft);margin-top:7px;overflow:hidden;max-width:340px}
-  .bk .info .br i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .45s ease}
-  .bk .sc{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px}
+  .rl-bk{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:14px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);transition:border-color .3s,background .3s}
+  .rl-bk.top{border-color:var(--brand);background:linear-gradient(90deg,rgba(59,111,255,.06),rgba(122,92,255,.04))}
+  .rl-bk .rl-rk{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px;color:var(--ink-faint);text-align:center}
+  .rl-bk.top .rl-rk{color:var(--brand)}
+  .rl-bk .rl-tt{font-size:14.5px;font-weight:700}
+  .rl-bk .rl-br{height:7px;border-radius:999px;background:var(--bg-soft);margin-top:7px;overflow:hidden;max-width:340px}
+  .rl-bk .rl-br i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .45s ease}
+  .rl-bk .rl-sc{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px}
   .rl-take{margin-top:22px;background:linear-gradient(120deg,rgba(59,111,255,.08),rgba(122,92,255,.06));border:1px solid rgba(59,111,255,.2);border-radius:14px;padding:15px 18px;font-size:14.5px;color:var(--ink-soft)}
   .rl-take b{color:var(--ink)}.rl-take .now{color:var(--brand);font-weight:800}
   .rl-note{font-size:11.5px;color:var(--ink-faint);margin-top:12px;font-family:'JetBrains Mono',monospace}
-  @media(prefers-reduced-motion:reduce){.bk .info .br i{transition:none}}
+  @media(prefers-reduced-motion:reduce){.rl-bk .rl-br i{transition:none}}
 </style>
 </head>
 <body>
@@ -719,7 +719,7 @@
         v1.textContent=w1.toFixed(2);v2.textContent=w2.toFixed(2);v3.textContent=w3.toFixed(2);
         const scored=BOOKS.map(bk=>({...bk,s:w1*bk.sp+w2*bk.pop+w3*bk.rec})).sort((x,y)=>y.s-x.s);
         const max=scored[0].s||1;
-        list.innerHTML=scored.map((bk,i)=>'<div class="bk'+(i===0?' top':'')+'"><div class="rk">'+(i+1)+'</div><div class="info"><div class="tt">'+esc(bk.t)+'</div><div class="br"><i style="width:'+(bk.s/max*100).toFixed(0)+'%"></i></div></div><div class="sc">'+bk.s.toFixed(2)+'</div></div>').join('');
+        list.innerHTML=scored.map((bk,i)=>'<div class="rl-bk'+(i===0?' top':'')+'"><div class="rl-rk">'+(i+1)+'</div><div class="rl-info"><div class="rl-tt">'+esc(bk.t)+'</div><div class="rl-br"><i style="width:'+(bk.s/max*100).toFixed(0)+'%"></i></div></div><div class="rl-sc">'+bk.s.toFixed(2)+'</div></div>').join('');
         now.textContent=scored[0].t;
       }
       [s1,s2,s3].forEach(s=>s.addEventListener('input',()=>{document.querySelectorAll('#rlpresets button').forEach(b=>b.classList.remove('on'));render();}));
