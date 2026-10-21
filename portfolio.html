@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>북켓몬 | 개인화 도서 추천 서비스</title>
-<meta name="description" content="책을 찾는 질문이 추천 목록이 되는 과정. 북켓몬의 핵심 기능, 이주형의 담당 범위와 오프라인 평가를 확인할 수 있습니다.">
+<title>북켓몬 | 엉뚱한 추천을 줄인 도서 검색·추천</title>
+<meta name="description" content="질문의 뜻에 맞는 책만 위로 올리는 순위 규칙으로 엉뚱한 추천을 90권 중 14권에서 2권으로 줄인 도서 검색·추천 서비스. 이주형의 담당 범위와 오프라인 평가를 확인할 수 있습니다.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="portfolio-legacy.css"><link rel="stylesheet" href="portfolio-reading.css">
@@ -13,14 +13,14 @@
 <a class="reader-skip" href="#overview">본문으로</a>
 <nav class="reader-nav" aria-label="프로젝트 탐색"><div class="reader-shell">
 <a class="reader-back" id="portfolio-back" href="../?work=01-bookemon#carousel"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg>작품 모음으로</a>
-<div class="reader-nav-links"><a href="#workflow">작동 흐름</a><a href="#evidence">결과</a><a href="#deep-read">자세히 읽기</a><button type="button" class="easy-open" id="easy-open" data-easy-open aria-haspopup="dialog" aria-controls="easy">쉽게 읽기</button></div>
+<div class="reader-nav-links"><a href="#workflow">작동 흐름</a><a href="#evidence">결과</a><a href="#fit">쓰임새</a><a href="#deep-read">자세히 읽기</a><button type="button" class="easy-open" id="easy-open" data-easy-open aria-haspopup="dialog" aria-controls="easy">쉽게 읽기</button></div>
 </div></nav>
 <main class="reader-shell" id="overview">
 <header class="reader-hero">
-<div class="reader-intro"><p class="reader-kicker">북켓몬 <span>AI 도서 추천 · 팀 프로젝트</span></p>
-<h1><span class="h1-lead">맞지 않는 추천을</span><br><span class="h1-num">90권 중 <b>14권</b>에서 <b>2권</b>으로</span></h1>
-<p class="reader-lead">북켓몬은 읽고 싶은 책을 문장으로 말하면 후보를 추려 5권을 골라 주는 도서 추천 서비스입니다. <br class="desktop-break">추천 순위를 매기는 규칙을 설계하고, 팀원 4명이 직접 채점해 효과를 쟀습니다.</p>
-<a class="reader-result" href="#evidence"><strong>맞지 않는 추천 90권 중 14권 → 2권 (15.56% → 2.22%)</strong><span>순위 규칙 끔/켬 · 18개 질의 상위 5권 · 오프라인 평가</span></a>
+<div class="reader-intro"><p class="reader-kicker">북켓몬 <span>AI 도서 검색·추천 · 팀 프로젝트</span></p>
+<h1><span class="h1-lead">질문의 뜻에 맞는 책만 위로 올려</span><br><span class="h1-num">엉뚱한 추천 <b>14권</b>을 <b>2권</b>으로</span></h1>
+<p class="reader-lead">사용자가 문장으로 원하는 책을 말했는데 인기 많은 책이나 신간이 먼저 올라오면, 추천 목록은 금방 믿을 수 없게 됩니다. 북켓몬은 약 10만 권에서 질문의 뜻이 가까운 책을 찾은 뒤, 장르·독자층·싫어하는 조건을 더하고 빼서 질문에 맞는 책만 위 5권으로 올립니다. <br class="desktop-break">이 순위 규칙을 설계하고, 팀원 4명이 직접 채점해 효과를 쟀습니다.</p>
+<a class="reader-result" href="#evidence"><strong>엉뚱한 추천 90권 중 14권 → 2권 (15.56% → 2.22%)</strong><span>순위 규칙 끔/켬 · 18개 질의 상위 5권 · 오프라인 평가</span></a>
 <p class="reader-mine"><span>내 담당</span>순위 계산 수식과 거르는 조건 직접 설계 · 평가 기준 설계와 채점 · 추천 파이프라인과 DB 스키마 설계 주도</p>
 <dl class="cp-who"><div><dt>내가 정한 것</dt><dd>문장 뜻 점수를 중심에 두고 장르·독자층·싫어하는 조건을 더하고 빼는 순위 계산 · 0·1·2점 채점 기준</dd></div><div><dt>팀원이 맡은 것</dt><dd>FE·BE·AI 세 직군으로 나눈 서비스 구현 · 18개 질의 채점(팀원 4명)</dd></div><div><dt>내가 확인한 것</dt><dd>규칙을 끈 목록과 켠 목록을 18개 질의의 상위 5권(90권)으로 비교</dd></div></dl>
 <div class="reader-role"><strong>이주형</strong><span>팀장 · 기획 리드</span><span>AI 추천 설계·평가</span><span>2026.03–05</span></div>
@@ -55,6 +55,16 @@
 <section class="reader-evidence" id="evidence" aria-labelledby="evidence-title">
 <div><p class="reader-kicker">추천 품질 평가</p><h2 id="evidence-title">순위 규칙을 켰을 때,<br>맞지 않는 책이 줄었는가</h2><p>장르·독자층·싫어하는 조건을 반영하는 순위 규칙을 끈 목록(문장 뜻 점수만)과 켠 목록을 같은 질의로 비교했습니다.</p><a href="#results" class="reader-text-link">전체 평가 조건과 표 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
 <div class="reader-proof"><div class="proof-row"><span>규칙 끔</span><strong>15.56<small>%</small></strong><div class="proof-dots" role="img" aria-label="추천 90권 중 부적합 14권"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i><i class="bad"></i></div></div><div class="proof-row after"><span>규칙 켬</span><strong>2.22<small>%</small></strong><div class="proof-dots" role="img" aria-label="추천 90권 중 부적합 2권"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="bad"></i><i class="bad"></i></div></div><p class="proof-legend"><i></i>추천된 책 한 권 <i class="bad"></i>부적합으로 채점된 책</p><p>18개 질의 × 상위 5권 = 90권. 팀원 4명이 0·1·2점으로 직접 채점해 0점을 부적합으로 셌습니다.</p><p class="reader-scope">오프라인 평가 결과입니다. 규칙을 고친 뒤 같은 18개 질의로 다시 잰 값이라 따로 떼어 둔 시험 질의는 없고, 실서비스 이용 효과는 추가 검증 대상입니다.</p></div>
+</section>
+
+<section class="reader-fit" id="fit" aria-labelledby="fit-title" style="padding:34px 0 8px">
+<div class="reader-section-head"><h2 id="fit-title">추천·검색 서비스에 붙인다면</h2><span>이 순위 규칙이 맡을 수 있는 일</span></div>
+<div class="reader-highlights" style="padding-top:0">
+<article><span class="highlight-index">커머스 검색</span><h2>문장 검색에 맞는 상품을 위로</h2><p>뜻이 가까운 후보를 넓게 찾은 뒤, 조건을 더하고 빼는 순위 규칙으로 질문에 맞는 것만 상위에 둡니다.</p></article>
+<article><span class="highlight-index">콘텐츠 추천</span><h2>싫어하는 조건은 아래로</h2><p>사용자가 피하고 싶다고 말한 조건을 감점으로 넣어, 추천 목록에서 엉뚱한 항목을 줄입니다.</p></article>
+<article><span class="highlight-index">품질 관리</span><h2>사람이 채점하는 평가 틀</h2><p>규칙을 끈 목록과 켠 목록을 같은 질의로 비교하고 0·1·2점으로 채점해, 규칙 하나의 효과를 숫자로 봅니다.</p></article>
+</div>
+<p class="fit-note" style="font-size:12px;color:var(--reader-muted);margin:0 0 20px">평가 규모는 18개 질의 · 팀원 4명 채점이고, 실서비스 이용 효과는 아직 재지 않았습니다.</p>
 </section>
 
 <section class="reader-deep" id="deep-read" aria-labelledby="deep-title"><div class="reader-section-head"><div><p class="reader-kicker">설계와 근거</p><h2 id="deep-title">궁금한 부분을 더 자세히</h2></div><button class="reader-expand" type="button" id="expand-all" aria-expanded="false">모두 펼치기</button></div>
@@ -514,8 +524,8 @@
 <div class="easy-top"><button type="button" class="easy-close" data-easy-close>원래대로 읽기</button><span class="easy-who">이주형 · 북켓몬</span></div>
 <header class="easy-head">
 <div>
-<h2 id="easy-title" class="ez-h"><span class="ez-strip">맞지 않는 추천을</span><br><span class="ez-strip">90권 중</span><span class="ez-strip blue">14권 → 2권</span></h2>
-<p class="ez-lede">읽고 싶은 책을 문장으로 말하면 5권을 골라 주는 도서 추천 서비스입니다. 순위를 매기는 규칙을 설계하고, 팀원 4명이 직접 채점해 효과를 쟀습니다.</p>
+<h2 id="easy-title" class="ez-h"><span class="ez-strip">엉뚱한 추천을</span><br><span class="ez-strip">90권 중</span><span class="ez-strip blue">14권 → 2권</span></h2>
+<p class="ez-lede">읽고 싶은 책을 문장으로 말하면, 질문의 뜻에 맞는 책만 위 5권으로 올려 주는 도서 검색·추천 서비스입니다. 순위를 매기는 규칙을 설계하고, 팀원 4명이 직접 채점해 효과를 쟀습니다.</p>
 <div class="ez-play"><a class="ez-btn main" href="https://youtu.be/9ZVoAvCKdoI" target="_blank" rel="noopener">데모 영상 보기</a><a class="ez-btn" href="https://ljhljh0703-cmd.github.io/AI-Book-Curation/" target="_blank" rel="noopener">라이브 피치</a></div>
 </div>
 <figure class="ez-obj"><img src="assets/portfolio-sticker.webp" alt="" width="180" height="180"></figure>
