@@ -120,3 +120,4 @@ nav.reader-nav{background:rgba(238,230,214,.94);border-bottom-color:var(--reader
   .reader-sticker::before{width:64px;height:28px;top:-10px}
   .story-ghost{font-size:22px}
 }
+.cp-who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0 0 16px;border:1.5px solid var(--reader-ink);background:var(--paper-slip)} .cp-who div{padding:10px 14px} .cp-who div+div{border-left:1px solid var(--reader-line)} .cp-who dt{font-size:12px;font-weight:800;color:var(--reader-accent);margin-bottom:2px} .cp-who dd{margin:0;font-size:13.5px;line-height:1.55;color:var(--reader-ink)} @media(max-width:600px){.cp-who{grid-template-columns:1fr}.cp-who div+div{border-left:0;border-top:1px solid var(--reader-line)}}
