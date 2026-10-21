@@ -149,5 +149,10 @@ footer.reader-footer{display:flex;align-items:center;flex-wrap:wrap;gap:28px;pad
 .reader-steps li.is-mine h3{color:var(--reader-accent)}
 @media(max-width:600px){.reader-result{margin:0 0 16px;padding:8px 11px}.reader-result strong{font-size:14px}.reader-result span{font-size:11px}.step-number em{font-size:10px;margin-left:6px;padding:1px 5px}}
 .record-rank{flex:none;white-space:nowrap}
+.evo-stages{display:flex;align-items:center;gap:8px;margin:12px 0 0}
+.evo-stage{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--reader-muted)}
+.evo-stage img{width:56px;height:56px;object-fit:contain;background:#fff;border:1px solid var(--reader-line);border-radius:8px;padding:3px}
+.evo-arrow{font-size:12px;color:#9aa79f;margin-bottom:16px}
+@media(max-width:600px){.evo-stage img{width:48px;height:48px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
 @media print{nav.reader-nav,.reader-actions,.reader-example-tabs,.reader-expand{display:none}.reader-shell{width:100%}.reader-hero{padding-top:0}.reader-detail{break-inside:avoid}.reader-sticker{width:90px}}
