@@ -15,7 +15,7 @@
 <header class="reader-hero">
 <div class="reader-intro"><p class="reader-kicker">북켓몬 <span>AI 도서 추천 · 팀 프로젝트</span></p>
 <h1>맞지 않는 추천을<br>90권 중 14권에서 2권으로</h1>
-<p class="reader-lead">북켓몬은 읽고 싶은 책을 문장으로 말하면 후보 100권에서 5권을 골라 주는 도서 추천 서비스입니다. <br class="desktop-break">추천 순위를 매기는 규칙을 설계하고, 팀원 4명이 직접 채점해 효과를 쟀습니다.</p>
+<p class="reader-lead">북켓몬은 읽고 싶은 책을 문장으로 말하면 후보를 추려 5권을 골라 주는 도서 추천 서비스입니다. <br class="desktop-break">추천 순위를 매기는 규칙을 설계하고, 팀원 4명이 직접 채점해 효과를 쟀습니다.</p>
 <a class="reader-result" href="#evidence"><strong>부적합 추천 15.56% → 2.22%</strong><span>순위 규칙 끔/켬 · 18개 질의 상위 5권 · 오프라인 평가</span></a>
 <p class="reader-mine"><span>내 담당</span>순위 계산 수식과 거르는 조건 직접 설계 · 평가 기준 설계와 채점 · 추천 파이프라인과 DB 스키마 설계 주도</p>
 <div class="reader-role"><strong>이주형</strong><span>팀장 · 기획 리드</span><span>AI 추천 설계·평가</span><span>2026.03–05</span></div>
@@ -37,7 +37,7 @@
 
 <section class="reader-story" aria-labelledby="story-title">
 <div class="reader-section-head"><h2 id="story-title">처음 설계를 버리고 다시 짠 과정</h2><span>내 판단</span></div>
-<ol class="story-list"><li><span class="story-k">문제</span><p>처음에는 취향·인기·신간 점수를 가중합하는 수식을 설계했습니다. 돌려 보니 인기·신간 점수가 커져 사용자 맞춤의 의미가 없었습니다.</p></li><li><span class="story-k">판단</span><p>질문을 중심으로 후보를 더 뽑도록 순위 계산을 다시 짰습니다. 문장 뜻 점수에 가장 큰 비중을 두고 인기·신간 항은 뺐습니다. 장르·독자층·싫어하는 조건은 가점과 감점으로 넣었습니다.</p></li><li><span class="story-k">검증</span><p>이 규칙을 끈 목록(문장 뜻 점수만)과 켠 목록을 18개 질의의 상위 5권으로 비교했습니다. 팀원 4명이 0·1·2점으로 직접 채점했습니다.</p></li><li class="story-result"><span class="story-k">결과</span><p>맞지 않는 책이 90권 중 <strong>14권에서 2권</strong>으로 줄었습니다.</p><a href="#evidence">평가 자세히 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></li></ol>
+<ol class="story-list"><li><span class="story-k">문제</span><p>처음에는 취향·인기·신간 점수를 가중합하는 수식을 설계했습니다. 돌려 보니 인기·신간 점수가 커져 사용자 맞춤의 의미가 없었습니다.</p></li><li><span class="story-k">판단</span><p>질문을 중심으로 후보를 더 뽑도록 순위 계산을 다시 짰습니다. 문장 뜻 점수에 가장 큰 비중을 두고 인기·신간 항은 뺐습니다. 장르·독자층·싫어하는 조건은 가점과 감점으로 넣었습니다.</p><a href="#decisions">처음 수식과 바꾼 수식 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></li><li><span class="story-k">검증</span><p>이 규칙을 끈 목록(문장 뜻 점수만)과 켠 목록을 18개 질의의 상위 5권으로 비교했습니다. 팀원 4명이 0·1·2점으로 직접 채점했습니다.</p></li><li class="story-result"><span class="story-k">결과</span><p>맞지 않는 책이 90권 중 <strong>14권에서 2권</strong>으로 줄었습니다.</p><a href="#evidence">평가 자세히 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></li></ol>
 </section>
 
 <section class="reader-highlights" aria-label="핵심 특징">
@@ -46,15 +46,6 @@
 <article><span class="highlight-index">독서 이후</span><h2>기록에 따라 캐릭터 성장</h2><p>독서 기록이 경험치가 되어 북켓몬이 알에서 진화합니다.</p><div class="evo-stages" role="img" aria-label="북켓몬 성장 단계: 알, 부화, 진화"><span class="evo-stage"><img src="bookemon_egg.png" alt="" width="56" height="56" loading="lazy">알</span><span class="evo-arrow" aria-hidden="true">→</span><span class="evo-stage"><img src="bookemon_hatch.png" alt="" width="56" height="56" loading="lazy">부화</span><span class="evo-arrow" aria-hidden="true">→</span><span class="evo-stage"><img src="bookemon_evo.png" alt="" width="56" height="56" loading="lazy">진화</span></div></article>
 </section>
 
-<section class="reader-example" id="example" aria-labelledby="example-title">
-<div class="reader-section-head"><div><p class="reader-kicker">입력과 결과</p><h2 id="example-title">한 가지 질문으로 보면</h2></div>
-<div class="reader-example-tabs" role="group" aria-label="저장된 검색 사례 선택"><button type="button" data-case="Q004" aria-pressed="true">추리소설</button><button type="button" data-case="Q017" aria-pressed="false">퇴근 후 독서</button></div></div>
-<div class="reader-record">
-<div class="record-input"><span class="record-label">입력</span><blockquote id="record-query">추리소설 추천해줘</blockquote><p>입력 문장에 맞는 후보를 찾습니다.</p></div>
-<div class="record-output"><div class="record-output-head"><span class="record-label">저장된 검색 결과</span><small>상위 3권 발췌</small></div><ol id="record-books"><li><span class="record-rank">01</span><span><strong>검사는 무엇으로 사는가 - 펜 클럽 Goldpen Club Novel</strong><small>이수광, 송시우 저</small></span></li><li><span class="record-rank">02</span><span><strong>계간 미스터리 2020 봄.여름 특별호 (큰글씨책) - 67호</strong><small>한국추리작가협회</small></span></li><li><span class="record-rank">03</span><span><strong>1973년 여름, 베를린의 안개 - 2015 올해의 추리소설</strong><small>공민철 외저</small></span></li></ol></div>
-</div><p class="reader-record-note" id="record-note">저장된 검색 기록 · 실행 당시 결과를 그대로 보여줍니다.</p>
-<div class="reader-actions"><a class="reader-button primary" href="https://youtu.be/9ZVoAvCKdoI" target="_blank" rel="noopener">서비스 데모 영상 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a class="reader-button" href="#decisions">추천 순위 설계 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
-</section>
 
 <section class="reader-evidence" id="evidence" aria-labelledby="evidence-title">
 <div><p class="reader-kicker">추천 품질 평가</p><h2 id="evidence-title">순위 규칙을 켰을 때,<br>맞지 않는 책이 줄었는가</h2><p>장르·독자층·싫어하는 조건을 반영하는 순위 규칙을 끈 목록(문장 뜻 점수만)과 켠 목록을 같은 질의로 비교했습니다.</p><a href="#results" class="reader-text-link">전체 평가 조건과 표 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
@@ -117,7 +108,7 @@
     })();</script></div></section></div></details><details class="reader-detail" id="results"><summary><span><strong>무엇을 어떻게 평가했나</strong><small>전체 평가표와 평가 조건</small></span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></summary><div class="reader-legacy"><section class="pad" id="legacy-results">
   <div class="wrap">
     <div class="center">
-      <span class="eyebrow reveal">Results</span>
+      <span class="eyebrow reveal">측정 결과</span>
       <h2 class="section-title reveal">측정된 결과</h2>
       <p class="section-sub reveal">설계가 실제로 효과 있었는지를 데이터로 확인한 기록입니다.<br>수치는 오프라인 평가 기준이며 실서비스 성능을 단정하지 않습니다.</p>
 
@@ -125,7 +116,7 @@
 
     <!-- ABLATION TABLE -->
     <div class="ablation-wrap reveal">
-      <div class="ablation-title">룰 ON vs OFF ablation — Top-5 성능 비교</div>
+      <div class="ablation-title">규칙 켬과 끔 비교 · 상위 5권</div>
       <table class="ablation-table">
         <thead>
           <tr>
@@ -137,13 +128,13 @@
         </thead>
         <tbody>
           <tr>
-            <td><b>룰 ON</b> (장르·오디언스·부정선호 필터 활성)</td>
+            <td><b>규칙 켬</b> (장르·독자층·싫어하는 조건 반영)</td>
             <td class="on">97.78%</td>
             <td class="on">2.22%</td>
-            <td class="delta">—</td>
+            <td class="delta">기준</td>
           </tr>
           <tr>
-            <td><b>룰 OFF</b> (벡터+가중치만)</td>
+            <td><b>규칙 끔</b> (문장 뜻 점수만)</td>
             <td class="off">84.44%</td>
             <td class="off">15.56%</td>
             <td class="delta">Δ −13.34%p</td>
@@ -174,9 +165,9 @@
         </div>
         <div class="fc-body">
           <span class="fc-label">벤치마크 · 임베딩</span>
-          <h3>임베딩 벤치마크 · 모델 선택을 데이터로</h3>
-          <p>CLOVA 90.09% 대비 Δ+1.05%p. 레이턴시 +590ms를 감수하고 품질을 택함.</p>
-          <p class="fc-foot"> MTEB 프레임워크 <span class="badge-cite">[논문]</span></p>
+          <h3>임베딩 모델 두 종 비교</h3>
+          <p>CLOVA 90.09%보다 1.05%p 높았고, 응답은 0.59초 느렸습니다. 품질 쪽을 골랐습니다.</p>
+          <p class="fc-foot">같은 Qdrant 상위 50권 조건 비교. 차이가 작아 질의를 늘려 다시 재 볼 대상.</p>
         </div>
       </article>
     </div>
@@ -196,14 +187,14 @@
           <div class="ch-no ch-metric"><b>2</b><small>레이어</small></div>
           <div class="ch-body" style="padding:20px 24px">
             <h3 style="font-size:17px">레이어 분리로 무중단 롤링 업데이트 구조</h3>
-            <p style="font-size:14px;color:var(--ink-soft)">Spring Boot(비즈니스)↔FastAPI(AI) 분리로 ML 모델 교체 시 백엔드 변경 없이 AI 서버만 롤링 업데이트합니다. <code style="font-family:JetBrains Mono;font-size:12px">SELECT FOR UPDATE</code> 행 수준 잠금으로 XP 동시성 Lost Update를 방지하고, 진화 단계 역행 금지 불변식을 구현했습니다.</p>
+            <p style="font-size:14px;color:var(--ink-soft)">Spring Boot(서비스)와 FastAPI(AI)를 나눠, 모델을 바꿀 때 백엔드는 그대로 두고 AI 서버만 다시 올립니다.</p>
           </div>
         </div>
         <div class="ch reveal">
           <div class="ch-no ch-metric"><b>10만</b><small>벡터</small></div>
           <div class="ch-body" style="padding:20px 24px">
-            <h3 style="font-size:17px">소셜 매칭 · RDB 스키마 설계</h3>
-            <p style="font-size:14px;color:var(--ink-soft)">Qdrant 근사 최근접 검색(Top-K)으로 유사 사용자 후보를 좁혔습니다. RDB 스키마(사용자·XP·도서·상호작용)를 직접 설계했습니다. 도서 벡터 약 10만 건(1,024차원 Cosine).</p>
+            <h3 style="font-size:17px">DB 스키마 설계</h3>
+            <p style="font-size:14px;color:var(--ink-soft)">RDB 스키마(사용자·XP·도서·상호작용) 설계를 주도했습니다. 도서 벡터는 약 10만 건(1,024차원)을 Qdrant에 넣었습니다.</p>
           </div>
         </div>
       </div>
@@ -212,7 +203,7 @@
 </section></div></details><details class="reader-detail" id="architecture"><summary><span><strong>어떤 구성으로 만들었나</strong><small>검색·AI 서버·데이터 저장소의 연결</small></span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></summary><div class="reader-legacy"><section class="pad arch" id="legacy-architecture">
   <div class="wrap">
     <div class="center">
-      <span class="eyebrow reveal">System Design</span>
+      <span class="eyebrow reveal">시스템 구성</span>
       <h2 class="section-title reveal">아키텍처 &amp; 데이터 흐름</h2>
       <p class="section-sub reveal">질의에서 최종 추천까지 레이어별 역할을 분리해,<br>ML 모델 교체 시 무중단 롤링 업데이트가 가능한 구조를 설계했습니다.</p>
     </div>
@@ -220,8 +211,8 @@
     <!-- Reranker 아키텍처 설명 -->
     <div class="reranker-callout reveal" style="margin-top:30px;max-width:720px;margin-left:auto;margin-right:auto">
       <div class="rc-label">GTE Reranker 전용 서버 분리 운영</div>
-      <p>HCX 배치 리랭킹(0~100 스코어 + 사유 생성) 외에 <code>gte-reranker-server</code>를 별도 서버로 분리 운영합니다. ML 모델을 교체할 때 Spring Boot 백엔드는 건드리지 않고 AI 서버만 롤링 업데이트합니다. 레이어 분리 설계의 일부입니다.</p>
-      <div class="cite-note">근거: Nogueira &amp; Cho, Passage Re-ranking with BERT (2019) — bi-encoder(빠른 후보 압축) + cross-encoder(정밀 재정렬) 2-stage 표준 정립 <span class="badge-cite">[논문]</span></div>
+      <p>다시 정렬하는 단계는 HCX와 <code>gte-reranker-server</code> 가운데 고를 수 있게 따로 떼어 두었고, 기본 설정에서는 꺼져 있습니다. ML 모델을 교체할 때 Spring Boot 백엔드는 건드리지 않고 AI 서버만 롤링 업데이트합니다. 레이어 분리 설계의 일부입니다.</p>
+      <div class="cite-note">근거: Nogueira &amp; Cho, Passage Re-ranking with BERT (2019). bi-encoder(빠른 후보 압축) + cross-encoder(정밀 재정렬) 2-stage 표준 정립 <span class="badge-cite">[논문]</span></div>
     </div>
 
     <!-- LAYER FLOW -->
@@ -234,14 +225,14 @@
       </div>
       <div class="arrow"><span class="lbl">HTTP API</span></div>
       <div class="node reveal">
-        <div class="tier">② Spring Boot — API Gateway</div>
+        <div class="tier">② Spring Boot: API Gateway</div>
         <h4>인증 · 라우팅 · 비즈니스 로직</h4>
-        <p>JWT Refresh Rotation·Redis 블랙리스트로 인증 관리. XP 엔진(<code style="font-family:JetBrains Mono;font-size:12px">SELECT FOR UPDATE</code> 행 잠금)·소셜 매칭(Qdrant 근사 최근접 검색으로 후보 축소) 구현. RDB 스키마 설계 주도.</p>
+        <p>소셜 로그인(OAuth2)과 독서 기록에 따른 경험치·캐릭터 단계 저장. RDB 스키마 설계 주도.</p>
         <div class="tags"><span>Java 21</span><span>Spring Boot 3</span><span>Spring Security</span><span>JPA</span><span>PostgreSQL+PostGIS</span></div>
       </div>
       <div class="arrow"><span class="lbl">Internal API</span></div>
       <div class="node reveal">
-        <div class="tier">③ FastAPI — AI Server (2-Stage Retrieve→Rerank)</div>
+        <div class="tier">③ FastAPI: AI Server (2-Stage Retrieve→Rerank)</div>
         <h4>벡터 추론 · 추천 파이프라인 · GTE Reranker</h4>
         <p>Spring Boot(비즈니스)↔FastAPI(AI) 레이어 분리. Stage 1 bi-encoder(KURE·Qdrant) → Stage 2 cross-encoder(GTE Reranker 전용서버 + HCX 배치리랭킹) 순서로 추천 흐름. ML 모델 교체 시 AI 서버만 롤링 업데이트. APScheduler로 대출 통계 주기 갱신.</p>
         <div class="tags"><span>Python 3.11</span><span>FastAPI</span><span>LightFM</span><span>GTE Reranker</span><span>APScheduler</span><span>Qdrant</span></div>
@@ -249,7 +240,7 @@
       <div class="arrow"><span class="lbl">Vector / Cache</span></div>
       <div class="node reveal">
         <div class="tier">④ 데이터 레이어</div>
-        <h4>PostgreSQL · Qdrant · Redis — 역할 분리</h4>
+        <h4>PostgreSQL · Qdrant · Redis: 역할 분리</h4>
         <p>PostgreSQL(사용자·XP·도서 RDB)·Qdrant(10만 벡터 · 1,024차원 Cosine)·Redis(세션·캐시)로 역할 분리. Docker Compose · K3s · GitLab CI/CD · Cloudflare · NAS 인프라 위에서 운영.</p>
         <div class="tags"><span>PostgreSQL+PostGIS</span><span>Qdrant</span><span>Redis</span><span>Docker Compose</span><span>K3s</span><span>GitLab CI/CD</span></div>
       </div>
@@ -269,9 +260,9 @@
       <p class="glossary reveal">*임베딩: 문장을 숫자 벡터로 바꾼 표현 / Precision@50: 상위 50개 중 적합 비율</p>
     </div>
     <div class="bench-card reveal" style="margin-top:50px">
-      <div class="bc-title">임베딩 벤치마크 · MTEB 프레임워크 기반</div>
+      <div class="bc-title">임베딩 모델 비교</div>
       <div class="bc-head">품질을 택한 트레이드오프 · Precision@50 +1.05%p ↔ 레이턴시 +590ms</div>
-      <div class="bc-sub">Bi-encoder 단계의 임베딩 모델 선택은 추천 품질의 상한선을 결정한다. 동일 Qdrant Top-50 환경에서 두 모델을 정량 비교해 트레이드오프를 데이터로 확정했다.<br><span class="bc-ref"><em>임베딩 표준 벤치(MTEB, Muennighoff et al. 2022) 프레임워크 적용</em> <span class="badge-cite">[논문]</span></span></div>
+      <div class="bc-sub">검색 단계에서 뽑는 후보가 이후 순위의 재료가 되기 때문에, 같은 Qdrant 상위 50권 조건에서 두 모델의 정확도와 응답 시간을 비교했습니다.</div>
       <div class="glossary" style="margin-top:10px;color:#8ea2c9">*Bi-encoder: 질문·문서를 따로 임베딩해 빠르게 후보 압축</div>
       <div class="bench-grid">
         <div class="bench-model winner">
@@ -315,11 +306,11 @@
           <div class="stage-card">
             <div class="stage-head"><span class="stage-n">Stage 2</span><span class="stage-tag precise">정밀</span></div>
             <div class="stage-name">Cross-encoder 리랭크</div>
-            <p class="stage-desc">GTE Reranker 전용 서버에서 쿼리·문서 쌍의 전체 문맥을 비교해 최종 <b>5권</b>으로 정밀 정렬. 적은 후보로 비용 제어.</p>
+            <p class="stage-desc">켜면 GTE Reranker 서버가 질문과 책을 함께 읽고 최종 <b>5권</b>을 다시 정렬합니다. 기본 설정에서는 꺼져 있는 선택 단계입니다.</p>
           </div>
         </div>
         <div style="margin-top:18px;padding:14px 16px;background:var(--bg-soft);border-radius:10px;border:1px solid var(--line)">
-          <p style="font-size:13px;color:var(--ink-soft)"><strong>설계 근거</strong> — 2-stage retrieve→rerank는 속도와 정확도 트레이드오프를 레이어로 분리하는 표준 구조이다. <em>Nogueira &amp; Cho, Passage Re-ranking with BERT (2019)</em> <span class="badge-cite">[논문]</span>에서 정립됐고, GTE Reranker(BAAI FlagEmbedding 계열)는 production RAG 환경의 표준 컴포넌트이다. HCX 배치 리랭킹과 병행해 최종 5권을 정한다.</p>
+          <p style="font-size:13px;color:var(--ink-soft)"><strong>설계 근거</strong> 빠른 검색과 느리지만 정밀한 재정렬을 단계로 나누는 방식입니다. <em>Nogueira &amp; Cho, Passage Re-ranking with BERT (2019)</em> <span class="badge-cite">[논문]</span> 참고. 모델은 Alibaba-NLP/gte-multilingual-reranker-base를 씁니다.</p>
         </div>
         <p class="glossary reveal">*Cross-encoder: 질문·문서를 함께 넣어 정밀 채점 / GTE Reranker: 검색 결과를 다시 정밀 정렬하는 모델 / RAG: 검색한 내용으로 답을 생성하는 구조</p>
       </div>
@@ -328,7 +319,7 @@
 </section></div></details><details class="reader-detail" id="features"><summary><span><strong>기능을 더 자세히 보기</strong><small>개인화·독서 기록·도서관 대출 연동</small></span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></summary><div class="reader-legacy"><section class="pad" id="legacy-features">
   <div class="wrap">
     <div class="center">
-      <span class="eyebrow reveal">What it does</span>
+      <span class="eyebrow reveal">핵심 기능</span>
       <h2 class="section-title reveal">핵심 기능</h2>
       <p class="section-sub reveal">추천 파이프라인, 콜드스타트(데이터 없는 신규 유저 추천 문제) 전환, 게이미피케이션 리텐션을 하나의 제품으로 묶었습니다.</p>
     </div>
@@ -340,9 +331,9 @@
           <rect class="m-bar" x="90" y="34" width="13" height="28" rx="4" fill="#7a5cff" style="animation-delay:.56s"/>
         </g></svg></div>
         <div class="fc-body">
-          <span class="fc-label">추천 · 점수식</span>
-          <h3>점수식으로 합산한 다중 신호</h3>
-          <p>개인화·대중성·신간 선호를 하나의 점수로 합산해 순위를 정합니다.<br><code style="font-family:JetBrains Mono;font-size:12px">final_score = w₁·S_personal + w₂·S_pop + w₃·S_recency</code><br>가중치를 바꾸면 추천 성향과 결과가 달라집니다. 수식은 아래 추천 수식 체험에서 확인 가능합니다.</p>
+          <span class="fc-label">추천 · 순위 계산</span>
+          <h3>질문 중심으로 합산하는 여러 신호</h3>
+          <p>문장 뜻 점수에 장르·독서 목적·서재 기록·리뷰 가점과 독자층 불일치·싫어하는 조건 감점을 더해 순위를 정합니다. 처음 설계한 취향·인기·신간 수식을 버린 이유는 「추천 순위를 어떻게 설계했나」에 있습니다.</p>
         </div>
       </article>
       <article class="feat-card reveal">
@@ -355,7 +346,7 @@
         <div class="fc-body">
           <span class="fc-label">콜드스타트</span>
           <h3>한국인 페르소나 데이터로 콜드스타트 세팅</h3>
-          <p>NVIDIA에서 제공한 <strong>Nemotron 한국인 합성 페르소나 100만 건(CC-BY-4.0)</strong>을 시드와 시뮬 평가에 활용했습니다. 취향 데이터가 없는 신규 유저 대상으로 근거있는 추천을 제공합니다(cold 가중치 personal 0.1·pop 0.7·recency 0.2).</p>
+          <p>NVIDIA에서 제공한 <strong>Nemotron 한국인 합성 페르소나 100만 건(CC-BY-4.0)</strong>을 시드와 시뮬 평가에 활용했습니다. 취향 기록이 없는 신규 사용자를 흉내 내 추천을 시험하는 데 썼습니다.</p>
         </div>
       </article>
       <article class="feat-card reveal">
@@ -422,7 +413,7 @@
     <div>
       <span class="eyebrow reveal">프로젝트 배경</span>
       <p class="lead-q reveal" style="margin-top:16px">학습할 데이터는 <span class="mk">사용자가 다시 찾아와야</span> 생깁니다.</p>
-      <p class="body reveal">맞춤형 AI 추천 서비스의 문제는 학습이라 생각했다. 하지만 진짜 문제는 일회성 추천으로 끝나는 게 아닌, 학습할 데이터를 구축할 수 있도록 지속적으로 방문해 서비스를 이용하도록 유도하는 일이었다. 그렇기에 사용자에게 맞춰 추천하는 기능과, 게이미피케이션 콘텐츠로 추천 정확도와 재방문 동기를 높일 수 있는 요소를 따로 설계했다.</p>
+      <p class="body reveal">처음에는 모델 학습이 가장 큰 문제라고 봤습니다. 그런데 추천이 한 번으로 끝나면 학습할 데이터가 쌓이지 않습니다. 그래서 사용자에게 맞춘 추천과 함께, 독서 기록으로 캐릭터를 키우는 요소를 넣어 다시 찾아올 이유를 만들었습니다.</p>
       
     </div>
     <div class="meta-card reveal">
@@ -444,13 +435,13 @@
     </div>
     <div class="tl">
       <div class="tl-item reveal">
-        <h4>행동·개인화 신호 효과 — 제한적 측정</h4>
+        <h4>행동·개인화 신호 효과: 제한적 측정</h4>
         <p>룰 ablation에서 행동·개인화 신호(리뷰·서재·audience) 효과는 "프로필 제외 평가" 구조상 제한적으로 측정됐습니다. 행동 신호 효과를 검증하려면 실제 유저 로그 기반 온라인 평가가 필요합니다.</p>
         <span class="res">→ 온라인 A/B 테스트 인프라 구성 → 룰·가중치 실시간 검증 루프 필요</span>
       </div>
       <div class="tl-item reveal">
-        <h4>LightFM 오프라인 근사 — 실서비스 루프와 차이 존재 · val/test 간 gap</h4>
-        <p>LightFM candidate-eval은 Qdrant 호출 없는 오프라인 근사(50개 채점) 기준입니다. val 46.84% · test 29.15% — 두 수치를 함께 보고하며, 실서비스 추천 루프와 완전히 동일한 환경 평가는 미완입니다.</p>
+        <h4>LightFM 오프라인 근사: 실서비스 루프와 차이 존재 · val/test 간 gap</h4>
+        <p>LightFM candidate-eval은 Qdrant 호출 없는 오프라인 근사(50개 채점) 기준입니다. val 46.84% · test 29.15%. 두 수치를 함께 보고하며, 실서비스 추천 루프와 완전히 동일한 환경 평가는 미완입니다.</p>
         <span class="res">→ Qdrant 연동 온라인 평가 루프 구성 필요</span>
       </div>
       <div class="tl-item reveal">
@@ -468,7 +459,7 @@
 </section></div></details><details class="reader-detail" id="stack"><summary><span><strong>사용한 기술 보기</strong><small>각 구성 요소에 쓰인 도구</small></span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></summary><div class="reader-legacy"><section class="pad" id="legacy-stack">
   <div class="wrap">
     <div class="center">
-      <span class="eyebrow reveal">Tech Stack</span>
+      <span class="eyebrow reveal">사용한 기술</span>
       <h2 class="section-title reveal">기술 스택</h2>
     </div>
     <div class="stack-grid">
@@ -513,6 +504,5 @@
 </section>
 <footer class="reader-footer"><a href="../?work=01-bookemon#carousel" data-portfolio-back><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg>작품 모음으로</a><a href="https://github.com/ljhljh0703-cmd/AI-Book-Curation" target="_blank" rel="noopener">GitHub 저장소 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="https://ljhljh0703-cmd.github.io/AI-Book-Curation/" target="_blank" rel="noopener">라이브 피치 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="https://drive.google.com/drive/folders/1DByy4oU3Q_HryDCB1FZCWQPe92M3bt0f" target="_blank" rel="noopener">전체 산출물 폴더 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="mailto:ljhljh0703@gmail.com">ljhljh0703@gmail.com</a><span>북켓몬 · 이주형</span></footer>
 </main>
-<script type="application/json" id="portfolio-cases">[{"id": "Q004", "label": "추리소설", "query": "추리소설 추천해줘", "books": [{"rank": 1, "title": "검사는 무엇으로 사는가 - 펜 클럽 Goldpen Club Novel", "author": "이수광, 송시우 저"}, {"rank": 2, "title": "계간 미스터리 2020 봄.여름 특별호 (큰글씨책) - 67호", "author": "한국추리작가협회"}, {"rank": 3, "title": "1973년 여름, 베를린의 안개 - 2015 올해의 추리소설", "author": "공민철 외저"}]}, {"id": "Q017", "label": "퇴근 후 독서", "query": "직장인이 퇴근 후 가볍게 읽기 좋은 에세이 추천해줘", "books": [{"rank": 1, "title": "출근 전후에 읽는 책", "author": "이곤 엮음"}, {"rank": 2, "title": "오늘도 무사히 퇴근했습니다", "author": "하야시 유지 저/요시타케 신스케 그림/양지연 역"}, {"rank": 3, "title": "출근하자마자 퇴근하고 싶다 - 지치면 안 되는 직장인의 하루 공감 심리학", "author": "조명국 저"}]}]</script>
 <script src="portfolio-reading.js"></script>
 </body></html>

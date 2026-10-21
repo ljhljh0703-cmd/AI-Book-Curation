@@ -1,8 +1,10 @@
 (() => {
   'use strict';
-  const cases = JSON.parse(document.getElementById('portfolio-cases').textContent);
-  const buttons = [...document.querySelectorAll('[data-case]')];
+  const casesEl = document.getElementById('portfolio-cases');
   const results = document.getElementById('record-books');
+  if (casesEl && results) {
+  const cases = JSON.parse(casesEl.textContent);
+  const buttons = [...document.querySelectorAll('[data-case]')];
   results.setAttribute('aria-live', 'polite');
   function showCase(id) {
     const example = cases.find(item => item.id === id);
@@ -20,6 +22,7 @@
     buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.case === id)));
   }
   buttons.forEach(button => button.addEventListener('click', () => showCase(button.dataset.case)));
+  }
 
   const panels = [...document.querySelectorAll('.reader-detail')];
   const expand = document.getElementById('expand-all');
