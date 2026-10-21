@@ -1,5 +1,53 @@
 # AI Book Curation
 
+> 도서 서지 데이터 약 10만 건을 바탕으로 자연어 질문·행동 기록·위치를 받아 책과 근처 도서관을 추천하는 팀 프로젝트(북켓몬).
+>
+> 작품 페이지: https://ljhljh0703-cmd.github.io/AI-Book-Curation/portfolio.html
+
+**실행**
+
+```bash
+# 추천·대화 서버 (FastAPI, :8001)
+cd book-curation/apps/ai-server
+pip install -r requirements.txt
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8001
+
+# API 서버 (Spring Boot, :8080)
+cd book-curation/apps/backend
+./gradlew bootRun
+```
+
+필요한 환경 변수: ai-server `CLOVA_API_KEY` · `QDRANT_URL` · `QDRANT_API_KEY` · `AI_INTERNAL_API_KEY`, backend `SPRING_PROFILES_ACTIVE=local` · `DB_URL` · `DB_USERNAME` · `DB_PASSWORD` · `AI_SERVER_BASE_URL` · `AI_INTERNAL_API_KEY`. 전체 순서는 `book-curation/apps/LOCAL_TESTING_README.md`. 루트 `index.html`은 발표 페이지라 브라우저로 바로 열린다.
+
+**시험**
+
+```bash
+cd book-curation/apps/ai-server
+pip install -r requirements-runtime.txt pytest
+python -m pytest tests          # 질문 의도·리랭커·멀티턴 문맥·듣기 모드 테스트
+```
+
+2026-10-21 컨테이너에서 돌린 결과: 16개 통과.
+
+**구조**
+
+```
+book-curation/apps/backend/     Spring Boot API 서버(회원·소셜 로그인·대화·캐시)
+book-curation/apps/ai-server/   FastAPI 추천·대화 서버(의도 분석·검색·리랭킹·개인화)
+book-curation/apps/frontend/    React·Vite 화면 소스
+book-curation/apps/*-server/    임베딩(kure)·리랭커(gte) 서버
+script/                         추천 랭커 학습 스크립트
+index.html · portfolio.html     발표 페이지 · 작품 페이지
+```
+
+**누가 무엇을** (이 저장소의 git 기록으로 확인되는 것만)
+
+- 이 저장소의 커밋 22개는 모두 이주형 계정이다.
+- 팀 코드(`book-curation/`)는 2026-05-26 커밋 두 개(`689e867`, `94d321f`)로 한꺼번에 옮겨 와서, 팀원별 작성 기록은 이 저장소에 남아 있지 않다.
+- 이주형 계정이 따로 올린 것: `script/` 학습 스크립트 7개, 루트 발표 페이지(`index.html` · `assets/`), `portfolio.html`, 이 README.
+
+---
+
 도서 서지 데이터 기반 사용자 맞춤형 도서 큐레이션 서비스입니다.
 
 본 프로젝트는 약 10만 건의 도서 서지 데이터를 기반으로 사용자의 자연어 질의, 대화 이력, 선호 장르, 행동 로그, 위치 정보를 종합하여 개인화 도서 추천을 제공하는 것을 목표로 합니다.
