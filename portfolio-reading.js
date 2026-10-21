@@ -64,15 +64,17 @@
 (() => {
   'use strict';
   const dlg = document.getElementById('easy');
-  const opener = document.getElementById('easy-open');
-  if (!dlg || !opener || typeof dlg.showModal !== 'function') { if (opener) opener.hidden = true; return; }
-  function open() {
+  const openers = [...document.querySelectorAll('[data-easy-open]')];
+  if (!dlg || !openers.length || typeof dlg.showModal !== 'function') { openers.forEach(b => { b.hidden = true; }); return; }
+  let opener = openers[0];
+  function open(e) {
     if (dlg.open) return;
+    if (e && e.currentTarget) opener = e.currentTarget;
     dlg.showModal(); dlg.scrollTop = 0;
     if (location.hash !== '#easy') history.replaceState(history.state, '', location.pathname + location.search + '#easy');
   }
   function close() { if (dlg.open) dlg.close(); }
-  opener.addEventListener('click', open);
+  openers.forEach(b => b.addEventListener('click', open));
   dlg.querySelectorAll('[data-easy-close]').forEach(b => b.addEventListener('click', close));
   dlg.addEventListener('close', () => {
     if (location.hash === '#easy') history.replaceState(history.state, '', location.pathname + location.search);

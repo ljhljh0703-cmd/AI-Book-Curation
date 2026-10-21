@@ -1,9 +1,21 @@
 /* 쉽게 읽기 · 작품 모음·젤리 패닉 작품 페이지와 같은 콜라주 결(찢긴 종이 · 테이프 · 오린 글자). 북켓몬 색은 남색 */
-.easy-open{font:inherit;font-size:14px;font-weight:800;color:#1b1a17;cursor:pointer;border:0;padding:7px 14px 6px;margin-left:6px;
-  background:url("assets/collage/paper-kraft.jpg") center/120px;transform:rotate(-2deg);
-  clip-path:polygon(0 8%,8% 0,96% 6%,100% 70%,94% 100%,4% 94%)}
-.easy-open:hover,.easy-open:focus-visible{background-image:url("assets/collage/paper-blue.jpg");color:#fff4e8}
-.easy-open:focus-visible{outline:2px solid #4b4ad1;outline-offset:4px}
+/* 여는 곳 두 군데: 위 메뉴의 파란 종이 버튼 + 첫 화면의 종이 띠. 눈에 먼저 띄게 남색 종이 + 먹 그림자 */
+.easy-open{position:relative;font:inherit;font-size:15px;font-weight:800;color:#fff4e8;cursor:pointer;border:0;padding:9px 18px 8px;margin-left:8px;
+  background:#4b4ad1 url("assets/collage/paper-blue.jpg") center/140px;transform:rotate(-3deg);box-shadow:0 3px 0 #1b1a17;
+  clip-path:polygon(0 8%,8% 0,96% 6%,100% 70%,94% 100%,4% 94%);filter:drop-shadow(2px 3px 0 #1b1a17)}
+.easy-open:hover,.easy-open:focus-visible{background-image:url("assets/collage/paper-kraft.jpg");color:#1b1a17}
+.easy-open:focus-visible,.easy-hero:focus-visible{outline:2px solid #1b1a17;outline-offset:4px}
+.easy-hero{display:flex;flex-direction:column;align-items:flex-start;gap:2px;font:inherit;text-align:left;cursor:pointer;border:0;
+  padding:12px 22px 12px 18px;color:#fff4e8;font-size:17px;font-weight:800;line-height:1.3;
+  background:#4b4ad1 url("assets/collage/paper-blue.jpg") center/200px;transform:rotate(-1.5deg);
+  clip-path:polygon(0 6%,6% 0,52% 4%,97% 0,100% 50%,97% 100%,45% 96%,2% 100%);filter:drop-shadow(4px 4px 0 #1b1a17)}
+.easy-hero-k{font:13px/1.2 "Black Han Sans",sans-serif;letter-spacing:.02em;color:#ffd84a}
+.easy-hero:hover{background-image:url("assets/collage/paper-kraft.jpg");color:#1b1a17}
+.easy-hero:hover .easy-hero-k{color:#4b4ad1}
+/* 처음 한 번만 탁 붙어 눈길을 끈다 */
+.easy-open,.easy-hero{animation:ezPop .5s steps(4,end) .6s both}
+@keyframes ezPop{0%{opacity:0;scale:1.35}60%{opacity:1;scale:.94}100%{opacity:1;scale:1}}
+@media(prefers-reduced-motion:reduce){.easy-open,.easy-hero{animation:none}}
 
 .easy{--ink:#1b1a17;--cream:#eee6d6;--blue:#4b4ad1;--red:#c0412a;
   position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;
@@ -120,5 +132,6 @@
   .ez-band{font-size:16px}
   .ez-stamp{font-size:16px;right:18px;top:18px}
   .ez-hex.h1,.ez-hex.h3,.ez-tape{display:none}
-  .easy-open{padding:6px 10px 5px;font-size:13px;margin-left:2px}
+  .easy-open{padding:7px 12px 6px;font-size:13px;margin-left:2px}
+  .easy-hero{width:100%;font-size:16px}
 }
