@@ -16,7 +16,7 @@
       const author = document.createElement('small'); author.textContent = book.author;
       info.append(title, author); li.append(rank, info); return li;
     }));
-    document.getElementById('record-note').textContent = `기존 검색 기록 ${example.id} · 실행 당시 저장된 결과를 보여줍니다.`;
+    document.getElementById('record-note').textContent = `저장된 검색 기록 · 실행 당시 결과를 그대로 보여줍니다.`;
     buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.case === id)));
   }
   buttons.forEach(button => button.addEventListener('click', () => showCase(button.dataset.case)));

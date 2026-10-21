@@ -16,7 +16,7 @@
 <div class="reader-intro"><p class="reader-kicker">북켓몬 <span>AI 도서 추천 · 팀 프로젝트</span></p>
 <h1>취향에 맞는 책을 찾고,<br>독서 기록을 이어가는 서비스</h1>
 <p class="reader-lead">읽고 싶은 책을 말하면 질문과 취향을 반영해 추천합니다. <br class="desktop-break">독서 기록으로 캐릭터가 성장해 다음 독서로 이어집니다.</p>
-<a class="reader-result" href="#evidence"><strong>부적합 추천 15.56% → 2.22%</strong><span>18개 질의 · 상위 5권 · 오프라인 평가</span></a>
+<a class="reader-result" href="#evidence"><strong>부적합 추천 15.56% → 2.22%</strong><span>필터 규칙 적용 전후 · 18개 질의 · 상위 5권 · 오프라인 평가</span></a>
 <div class="reader-role"><strong>이주형</strong><span>팀장 · 기획 리드</span><span>AI 추천 설계·평가</span><span>2026.03–05</span></div>
 </div>
 <figure class="reader-sticker"><img src="assets/portfolio-sticker.webp" alt="북켓몬을 나타내는 기존 콜라주 스티커" width="180" height="180"><figcaption>작동 프로토타입</figcaption></figure>
@@ -26,11 +26,11 @@
 <div class="reader-section-head"><h2 id="workflow-title">질문이 추천 목록이 되는 과정</h2><span>서비스 흐름</span></div>
 <ol class="reader-steps">
 <li><span class="step-number">01</span><h3>원하는 책 말하기</h3><p>장르나 읽는 목적을<br>문장으로 입력합니다.</p><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></li>
-<li class="is-mine"><span class="step-number">02<em>내 담당</em></span><h3>후보 도서 찾기</h3><p>질문의 뜻을 바탕으로<br>관련 도서를 검색합니다.</p><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></li>
+<li><span class="step-number">02</span><h3>후보 도서 찾기</h3><p>질문의 뜻을 바탕으로<br>관련 도서를 검색합니다.</p><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></li>
 <li class="is-mine"><span class="step-number">03<em>내 담당</em></span><h3>추천 순위 조정</h3><p>취향과 선호 조건을<br>반영해 순위를 조절합니다.</p><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></li>
 <li><span class="step-number">04</span><h3>읽을 책 고르기</h3><p>추천 목록에서 책을 고르고<br>독서 기록을 남깁니다.</p></li>
 </ol>
-<div class="reader-ownership"><span>내 담당 · 02·03 단계</span><p>추천 수식·파이프라인 설계, 평가 조건 구성과 결과 비교</p></div>
+<div class="reader-ownership"><span>내 담당</span><p>추천 파이프라인 설계 주도 · 03단계 추천 수식 직접 설계 · 평가 하네스와 DB 스키마 설계 주도</p></div>
 </section>
 
 <section class="reader-highlights" aria-label="핵심 특징">
@@ -45,13 +45,13 @@
 <div class="reader-record">
 <div class="record-input"><span class="record-label">입력</span><blockquote id="record-query">추리소설 추천해줘</blockquote><p>입력 문장에 맞는 후보를 찾습니다.</p></div>
 <div class="record-output"><div class="record-output-head"><span class="record-label">저장된 검색 결과</span><small>상위 3권 발췌</small></div><ol id="record-books"><li><span class="record-rank">01</span><span><strong>검사는 무엇으로 사는가 - 펜 클럽 Goldpen Club Novel</strong><small>이수광, 송시우 저</small></span></li><li><span class="record-rank">02</span><span><strong>계간 미스터리 2020 봄.여름 특별호 (큰글씨책) - 67호</strong><small>한국추리작가협회</small></span></li><li><span class="record-rank">03</span><span><strong>1973년 여름, 베를린의 안개 - 2015 올해의 추리소설</strong><small>공민철 외저</small></span></li></ol></div>
-</div><p class="reader-record-note" id="record-note">기존 검색 기록 Q004 · 실행 당시 저장된 결과를 보여줍니다.</p>
-<div class="reader-actions"><a class="reader-button primary" href="https://drive.google.com/file/d/15zLSPNVHW-ARoGFijLDPnozzd-fLkzij/view" target="_blank" rel="noopener">서비스 데모 영상 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a class="reader-button" href="#decisions">추천 기준의 설계 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
+</div><p class="reader-record-note" id="record-note">저장된 검색 기록 · 실행 당시 결과를 그대로 보여줍니다.</p>
+<div class="reader-actions"><a class="reader-button primary" href="https://youtu.be/9ZVoAvCKdoI" target="_blank" rel="noopener">서비스 데모 영상 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a class="reader-button" href="#decisions">추천 기준의 설계 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
 </section>
 
 <section class="reader-evidence" id="evidence" aria-labelledby="evidence-title">
-<div><p class="reader-kicker">추천 품질 평가</p><h2 id="evidence-title">추천 규칙을 켰을 때,<br>맞지 않는 책이 줄었는가</h2><p>같은 질의에서 규칙 적용 전후의<br>상위 추천 목록을 비교했습니다.</p><a href="#results" class="reader-text-link">전체 평가 조건과 표 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
-<div class="reader-proof"><div class="proof-row"><span>규칙 끔</span><strong>15.56<small>%</small></strong><div class="proof-track"><i style="--value:77.8%"></i></div></div><div class="proof-row after"><span>규칙 켬</span><strong>2.22<small>%</small></strong><div class="proof-track"><i style="--value:11.1%"></i></div></div><p>부적합 추천 비율 · 18개 질의 · 상위 5권 기준</p><p class="reader-scope">오프라인 평가 결과입니다. 실서비스 이용 효과는 추가 검증 대상입니다.</p></div>
+<div><p class="reader-kicker">추천 품질 평가</p><h2 id="evidence-title">필터 규칙을 켰을 때,<br>맞지 않는 책이 줄었는가</h2><p>장르·독자층·싫어하는 조건을 거르는 필터를 끈 목록(검색과 가중치만)과 켠 목록을 같은 질의로 비교했습니다.</p><a href="#results" class="reader-text-link">전체 평가 조건과 표 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
+<div class="reader-proof"><div class="proof-row"><span>필터 끔</span><strong>15.56<small>%</small></strong><div class="proof-track"><i style="--value:77.8%"></i></div></div><div class="proof-row after"><span>필터 켬</span><strong>2.22<small>%</small></strong><div class="proof-track"><i style="--value:11.1%"></i></div></div><p>부적합 추천 비율 · 18개 질의 · 상위 5권 기준 · 90권 중 14권 → 2권</p><p>사람이 0·1·2점으로 채점하고 0점을 부적합으로 셌습니다.</p><p class="reader-scope">오프라인 평가 결과입니다. 필터를 고친 뒤 같은 18개 질의로 다시 잰 값이라 따로 떼어 둔 시험 질의는 없고, 실서비스 이용 효과는 추가 검증 대상입니다.</p></div>
 </section>
 
 <section class="reader-deep" id="deep-read" aria-labelledby="deep-title"><div class="reader-section-head"><div><p class="reader-kicker">설계와 근거</p><h2 id="deep-title">궁금한 부분을 더 자세히</h2></div><button class="reader-expand" type="button" id="expand-all" aria-expanded="false">모두 펼치기</button></div>
@@ -115,7 +115,7 @@
           <div class="ch-result">
             <span class="k">성과</span>
             <span class="v">룰을 켜고 끈 ablation에서 Top-5 Precision <b>Δ+13.34%p</b> · Bad Rate <b>Δ−13.34%p</b></span>
-            <span class="src">[성능평가 §4]</span>
+            <span class="src">[실측]</span>
           </div>
         </div>
       </div>
@@ -192,7 +192,7 @@
     <!-- 테제 연결 -->
     <div class="thesis-banner reveal">
       <div class="tb-label">Retrieve-and-Rerank · 임베딩 벤치 = 평가 관점</div>
-      <p>2-stage retrieve→rerank(bi-encoder→cross-encoder)와 임베딩 벤치(KURE vs CLOVA Precision@50)는 모두 <em>평가 관점에서 선택을 측정한 사례</em>이다. RAG의 어느 레이어가 품질에 기여하는지를 실험으로 분리한 접근이다. Agentic RAG·평가 설계 방향과 직결된다.</p>
+      <p>2-stage retrieve→rerank(bi-encoder→cross-encoder)와 임베딩 벤치(KURE vs CLOVA Precision@50)는 모두 <em>평가 관점에서 선택을 측정한 사례</em>이다. RAG의 어느 레이어가 품질에 기여하는지를 실험으로 분리한 접근이다.</p>
     </div>
   </div>
 </section></div></details><details class="reader-detail" id="results"><summary><span><strong>무엇을 어떻게 평가했나</strong><small>전체 평가표와 평가 조건</small></span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></summary><div class="reader-legacy"><section class="pad" id="legacy-results">
@@ -206,7 +206,7 @@
 
     <!-- ABLATION TABLE -->
     <div class="ablation-wrap reveal">
-      <div class="ablation-title">룰 ON vs OFF ablation — Top-5 성능 비교 <span class="badge-real">[실측 | 성능평가 §4]</span></div>
+      <div class="ablation-title">룰 ON vs OFF ablation — Top-5 성능 비교 <span class="badge-real">[실측]</span></div>
       <table class="ablation-table">
         <thead>
           <tr>
@@ -257,7 +257,7 @@
           <span class="fc-label">벤치마크 · 임베딩</span>
           <h3>임베딩 벤치마크 · 모델 선택을 데이터로</h3>
           <p>CLOVA 90.09% 대비 Δ+1.05%p. 레이턴시 +590ms를 감수하고 품질을 택함.</p>
-          <p class="fc-foot">[실측 | 성능평가 §8.2] · MTEB 프레임워크 <span class="badge-cite">[논문]</span></p>
+          <p class="fc-foot">[실측] · MTEB 프레임워크 <span class="badge-cite">[논문]</span></p>
         </div>
       </article>
       <article class="feat-card reveal">
@@ -269,7 +269,7 @@
           <span class="fc-label">최적 조합 · 오프라인</span>
           <h3>최적 조합 상세 · 오프라인 기준</h3>
           <p>llm_search_query × dense × current 조합. Bad Rate 0% · 응답 577ms.</p>
-          <p class="fc-foot">[실측 | 성능평가 §9] · 실서비스 성능 단정 아님.</p>
+          <p class="fc-foot">[실측] · 실서비스 성능 단정 아님.</p>
         </div>
       </article>
     </div>
@@ -367,7 +367,7 @@
       <p class="glossary reveal">*임베딩: 문장을 숫자 벡터로 바꾼 표현 / Precision@50: 상위 50개 중 적합 비율</p>
     </div>
     <div class="bench-card reveal" style="margin-top:50px">
-      <div class="bc-title">임베딩 벤치마크 · 성능평가 §8.2 · MTEB 프레임워크 기반 <span class="badge-real">[실측]</span></div>
+      <div class="bc-title">임베딩 벤치마크 · MTEB 프레임워크 기반 <span class="badge-real">[실측]</span></div>
       <div class="bc-head">품질을 택한 트레이드오프 · Precision@50 +1.05%p ↔ 레이턴시 +590ms</div>
       <div class="bc-sub">Bi-encoder 단계의 임베딩 모델 선택은 추천 품질의 상한선을 결정한다. 동일 Qdrant Top-50 환경에서 두 모델을 정량 비교해 트레이드오프를 데이터로 확정했다.<br><span class="bc-ref"><em>임베딩 표준 벤치(MTEB, Muennighoff et al. 2022) 프레임워크 적용</em> <span class="badge-cite">[논문]</span></span></div>
       <div class="glossary" style="margin-top:10px;color:#8ea2c9">*Bi-encoder: 질문·문서를 따로 임베딩해 빠르게 후보 압축</div>
@@ -393,7 +393,7 @@
         <span class="bc-summary-k">결론</span>
         <p class="bc-summary-v">실제 서비스에서는 <b>0.59초의 지연</b>보다 <b class="hl">더 높은 품질</b>을 우선시하는 게 유효하다고 판단했다.</p>
       </div>
-      <div class="bench-note">※ 동일 평가 환경 비교 · 성능평가 §8.2 [실측] · KURE = 한국어 임베딩 모델, 출처 자체검증 완료 / 논문 인용 보류 · 트레이드오프 선택은 프로젝트 컨텍스트(오프라인 프로토타입, 품질 우선)에 의거</div>
+      <div class="bench-note">※ 동일 평가 환경 비교 [실측] · KURE = 한국어 임베딩 모델 · 트레이드오프 선택은 프로젝트 컨텍스트(오프라인 프로토타입, 품질 우선)에 의거</div>
     </div>
 
     <!-- 2-Stage Retrieve→Rerank 설명 -->
@@ -552,12 +552,12 @@
         <span class="res">→ Qdrant 연동 온라인 평가 루프 구성 필요</span>
       </div>
       <div class="tl-item reveal">
-        <h4>최적 조합 Precision 100%·Bad Rate 0% — 오프라인 특정 구성 결과, 캡션 유지</h4>
-        <p>성능평가 §9 최적 조합(llm_search_query × dense × current) Top-5 결과는 오프라인 특정 구성 평가 기준입니다. 모든 조합·실서비스 환경에서의 성능을 단정하지 않으며, 이 캡션은 정직성 원칙에 따라 유지합니다.</p>
+        <h4>최적 조합 Precision 100%·Bad Rate 0% (오프라인 특정 구성 결과)</h4>
+        <p>최적 조합(llm_search_query × dense × current) Top-5 결과는 오프라인 특정 구성 평가 기준이며, 모든 조합과 실서비스 성능을 뜻하지 않습니다.</p>
         <span class="res">→ 다양한 조합·실서비스 조건에서 추가 검증 필요</span>
       </div>
       <div class="tl-item reveal">
-        <h4>RAGAS(RAG 평가 프레임워크) — 다음 단계 / 미구현 정직 표기</h4>
+        <h4>RAGAS(RAG 평가 프레임워크) · 다음 단계, 아직 미구현</h4>
         <p>현재 평가는 인간 채점 기반 질의-추천 적합성 중심입니다. RAGAS(Es et al., arXiv:2309.15217, 2023)의 faithfulness·answer_relevancy·context_recall 지표는 미측정입니다. HCX 리랭킹 단계의 hallucinate 여부를 정량화하는 데 적합하지만, 현재 미구현 상태입니다.</p>
         <span class="res">→ 향후 온라인 A/B 테스트와 병행해 RAGAS 기반 retrieval 품질 평가 적용 계획</span>
       </div>
@@ -609,7 +609,7 @@
   </div>
 </section></div></details>
 </section>
-<footer class="reader-footer"><a href="../?work=01-bookemon#carousel" data-portfolio-back><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg>작품 모음으로</a><a href="https://github.com/ljhljh0703-cmd/AI-Book-Curation" target="_blank" rel="noopener">GitHub 저장소 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><span>북켓몬 · 이주형</span></footer>
+<footer class="reader-footer"><a href="../?work=01-bookemon#carousel" data-portfolio-back><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg>작품 모음으로</a><a href="https://github.com/ljhljh0703-cmd/AI-Book-Curation" target="_blank" rel="noopener">GitHub 저장소 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="https://ljhljh0703-cmd.github.io/AI-Book-Curation/" target="_blank" rel="noopener">라이브 피치 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="https://drive.google.com/drive/folders/1DByy4oU3Q_HryDCB1FZCWQPe92M3bt0f" target="_blank" rel="noopener">전체 산출물 폴더 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><span>북켓몬 · 이주형</span></footer>
 </main>
 <script type="application/json" id="portfolio-cases">[{"id": "Q004", "label": "추리소설", "query": "추리소설 추천해줘", "books": [{"rank": 1, "title": "검사는 무엇으로 사는가 - 펜 클럽 Goldpen Club Novel", "author": "이수광, 송시우 저"}, {"rank": 2, "title": "계간 미스터리 2020 봄.여름 특별호 (큰글씨책) - 67호", "author": "한국추리작가협회"}, {"rank": 3, "title": "1973년 여름, 베를린의 안개 - 2015 올해의 추리소설", "author": "공민철 외저"}]}, {"id": "Q017", "label": "퇴근 후 독서", "query": "직장인이 퇴근 후 가볍게 읽기 좋은 에세이 추천해줘", "books": [{"rank": 1, "title": "출근 전후에 읽는 책", "author": "이곤 엮음"}, {"rank": 2, "title": "오늘도 무사히 퇴근했습니다", "author": "하야시 유지 저/요시타케 신스케 그림/양지연 역"}, {"rank": 3, "title": "출근하자마자 퇴근하고 싶다 - 지치면 안 되는 직장인의 하루 공감 심리학", "author": "조명국 저"}]}]</script>
 <script src="portfolio-reading.js"></script>

@@ -148,5 +148,6 @@ footer.reader-footer{display:flex;align-items:center;flex-wrap:wrap;gap:28px;pad
 .step-number em{font-style:normal;font-size:11px;letter-spacing:0;font-weight:700;margin-left:8px;padding:2px 6px;border-radius:4px;background:var(--reader-accent);color:#fff;vertical-align:1px}
 .reader-steps li.is-mine h3{color:var(--reader-accent)}
 @media(max-width:600px){.reader-result{margin:0 0 16px;padding:8px 11px}.reader-result strong{font-size:14px}.reader-result span{font-size:11px}.step-number em{font-size:10px;margin-left:6px;padding:1px 5px}}
+.record-rank{flex:none;white-space:nowrap}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
 @media print{nav.reader-nav,.reader-actions,.reader-example-tabs,.reader-expand{display:none}.reader-shell{width:100%}.reader-hero{padding-top:0}.reader-detail{break-inside:avoid}.reader-sticker{width:90px}}
