@@ -174,5 +174,9 @@ footer.reader-footer{display:flex;align-items:center;flex-wrap:wrap;gap:28px;pad
 .reader-evidence .reader-proof>p.proof-legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .proof-legend i{display:inline-block}.proof-legend i.bad{margin-left:10px}
 @media(max-width:600px){.reader-funnel{padding-bottom:18px}.rf-row{grid-template-columns:96px 1fr 44px;gap:10px}.rf-num{font-size:17px}.rf-label{font-size:12px}.rf-note{font-size:11px}.proof-dots{grid-template-columns:repeat(15,8px);gap:3px}.proof-dots i{width:8px;height:8px}}
+.rf-wrap{display:grid;grid-template-columns:minmax(0,620px) minmax(0,1fr);gap:40px;align-items:center}
+.rf-figure{margin:0;justify-self:end;max-width:430px}
+.rf-figure img{display:block;width:100%;height:auto}
+@media(max-width:820px){.rf-wrap{grid-template-columns:1fr;gap:0}.rf-figure{justify-self:center;max-width:300px;order:-1;margin:0 0 2px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
 @media print{nav.reader-nav,.reader-actions,.reader-example-tabs,.reader-expand{display:none}.reader-shell{width:100%}.reader-hero{padding-top:0}.reader-detail{break-inside:avoid}.reader-sticker{width:90px}}

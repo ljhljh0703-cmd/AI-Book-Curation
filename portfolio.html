@@ -30,7 +30,7 @@
 <li class="is-mine"><span class="step-number">03<em>내 담당</em></span><h3>추천 순위 조정</h3><p>취향과 선호 조건을<br>반영해 순위를 조절합니다.</p><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></li>
 <li><span class="step-number">04</span><h3>읽을 책 고르기</h3><p>추천 목록에서 책을 고르고<br>독서 기록을 남깁니다.</p></li>
 </ol>
-<div class="reader-funnel" role="img" aria-label="후보 도서 수, 설계 기준: 검색 100권, 규칙 필터 50권, 개인화 20권, 최종 재정렬 5권"><p class="rf-title">후보 도서 수가 줄어드는 과정<span>설계 기준</span></p><div class="rf-row"><span class="rf-label"><em>02</em>검색</span><span class="rf-track"><span class="rf-bar" style="--w:100%"></span></span><span class="rf-num">100<small>권</small></span></div><div class="rf-row"><span class="rf-label"><em>03</em>규칙 필터</span><span class="rf-track"><span class="rf-bar" style="--w:50%"></span></span><span class="rf-num">50<small>권</small></span></div><div class="rf-row"><span class="rf-label"><em>03</em>개인화</span><span class="rf-track"><span class="rf-bar" style="--w:20%"></span></span><span class="rf-num">20<small>권</small></span></div><div class="rf-row rf-last"><span class="rf-label"><em>03</em>최종 재정렬</span><span class="rf-track"><span class="rf-bar" style="--w:5%"></span></span><span class="rf-num">5<small>권</small></span></div><p class="rf-note">실제 실행에서는 질문 종류에 따라 권수가 달라집니다.</p></div>
+<div class="rf-wrap"><div class="reader-funnel" role="img" aria-label="후보 도서 수, 설계 기준: 검색 100권, 규칙 필터 50권, 개인화 20권, 최종 재정렬 5권"><p class="rf-title">후보 도서 수가 줄어드는 과정<span>설계 기준</span></p><div class="rf-row"><span class="rf-label"><em>02</em>검색</span><span class="rf-track"><span class="rf-bar" style="--w:100%"></span></span><span class="rf-num">100<small>권</small></span></div><div class="rf-row"><span class="rf-label"><em>03</em>규칙 필터</span><span class="rf-track"><span class="rf-bar" style="--w:50%"></span></span><span class="rf-num">50<small>권</small></span></div><div class="rf-row"><span class="rf-label"><em>03</em>개인화</span><span class="rf-track"><span class="rf-bar" style="--w:20%"></span></span><span class="rf-num">20<small>권</small></span></div><div class="rf-row rf-last"><span class="rf-label"><em>03</em>최종 재정렬</span><span class="rf-track"><span class="rf-bar" style="--w:5%"></span></span><span class="rf-num">5<small>권</small></span></div><p class="rf-note">실제 실행에서는 질문 종류에 따라 권수가 달라집니다.</p></div><figure class="rf-figure"><img src="assets/curation-flow.webp" alt="많은 책이 거름 장치를 지나 몇 권으로 줄어드는 그림" width="960" height="640" loading="lazy"></figure></div>
 <div class="reader-ownership"><span>내 담당</span><p>추천 파이프라인 설계 주도 · 03단계 추천 수식 직접 설계 · 평가 하네스와 DB 스키마 설계 주도</p></div>
 </section>
 
@@ -311,11 +311,6 @@
       <p class="section-sub reveal">질의에서 최종 추천까지 레이어별 역할을 분리해,<br>ML 모델 교체 시 무중단 롤링 업데이트가 가능한 구조를 설계했습니다.</p>
     </div>
 
-    <!-- SVG PIPELINE KEYVISUAL -->
-    <div class="pipe-wrap reveal">
-      <img src="assets/pipeline-3d.png" alt="북켓몬 추천 파이프라인 3D 다이어그램 — 사용자 질의 → Bi-encoder(Stage 1) → LightFM+룰 → Cross-encoder(Stage 2) → 도서관 연동 → 최종 추천" width="1529" height="429" loading="lazy">
-    </div>
-
     <!-- Reranker 아키텍처 설명 -->
     <div class="reranker-callout reveal" style="margin-top:30px;max-width:720px;margin-left:auto;margin-right:auto">
       <div class="rc-label">GTE Reranker 전용 서버 분리 운영</div>
@@ -408,17 +403,17 @@
           <div class="stage-card">
             <div class="stage-head"><span class="stage-n">Stage 1</span><span class="stage-tag fast">빠름</span></div>
             <div class="stage-name">Bi-encoder 검색</div>
-            <p class="stage-desc">KURE Embedding으로 Qdrant <b>Top-50</b>을 빠르게 추출. 벡터 내적만 계산해 대규모 코퍼스에서도 낮은 지연을 유지.</p>
+            <p class="stage-desc">KURE Embedding으로 Qdrant에서 후보 <b>100권</b>을 빠르게 추출. 벡터 내적만 계산해 대규모 코퍼스에서도 낮은 지연을 유지.</p>
           </div>
           <div class="stage-arrow" aria-hidden="true">→</div>
           <div class="stage-card">
             <div class="stage-head"><span class="stage-n">Stage 2</span><span class="stage-tag precise">정밀</span></div>
             <div class="stage-name">Cross-encoder 리랭크</div>
-            <p class="stage-desc">GTE Reranker 전용 서버에서 쿼리·문서 쌍의 전체 문맥을 비교해 <b>Top-3</b>으로 정밀 정렬. 적은 후보로 비용 제어.</p>
+            <p class="stage-desc">GTE Reranker 전용 서버에서 쿼리·문서 쌍의 전체 문맥을 비교해 최종 <b>5권</b>으로 정밀 정렬. 적은 후보로 비용 제어.</p>
           </div>
         </div>
         <div style="margin-top:18px;padding:14px 16px;background:var(--bg-soft);border-radius:10px;border:1px solid var(--line)">
-          <p style="font-size:13px;color:var(--ink-soft)"><strong>설계 근거</strong> — 2-stage retrieve→rerank는 속도와 정확도 트레이드오프를 레이어로 분리하는 표준 구조이다. <em>Nogueira &amp; Cho, Passage Re-ranking with BERT (2019)</em> <span class="badge-cite">[논문]</span>에서 정립됐고, GTE Reranker(BAAI FlagEmbedding 계열)는 production RAG 환경의 표준 컴포넌트이다. HCX 배치 리랭킹과 병행해 최종 Top-3을 결정한다.</p>
+          <p style="font-size:13px;color:var(--ink-soft)"><strong>설계 근거</strong> — 2-stage retrieve→rerank는 속도와 정확도 트레이드오프를 레이어로 분리하는 표준 구조이다. <em>Nogueira &amp; Cho, Passage Re-ranking with BERT (2019)</em> <span class="badge-cite">[논문]</span>에서 정립됐고, GTE Reranker(BAAI FlagEmbedding 계열)는 production RAG 환경의 표준 컴포넌트이다. HCX 배치 리랭킹과 병행해 최종 5권을 정한다.</p>
         </div>
         <p class="glossary reveal">*Cross-encoder: 질문·문서를 함께 넣어 정밀 채점 / GTE Reranker: 검색 결과를 다시 정밀 정렬하는 모델 / RAG: 검색한 내용으로 답을 생성하는 구조</p>
       </div>
