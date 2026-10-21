@@ -59,3 +59,24 @@
   else home.hash = 'carousel';
   document.querySelectorAll('#portfolio-back,[data-portfolio-back]').forEach(link => { link.href = home.href; });
 })();
+
+// 쉽게 읽기: 콜라주 요약 화면. 주소 끝 #easy 로 바로 열 수 있다
+(() => {
+  'use strict';
+  const dlg = document.getElementById('easy');
+  const opener = document.getElementById('easy-open');
+  if (!dlg || !opener || typeof dlg.showModal !== 'function') { if (opener) opener.hidden = true; return; }
+  function open() {
+    if (dlg.open) return;
+    dlg.showModal(); dlg.scrollTop = 0;
+    if (location.hash !== '#easy') history.replaceState(history.state, '', location.pathname + location.search + '#easy');
+  }
+  function close() { if (dlg.open) dlg.close(); }
+  opener.addEventListener('click', open);
+  dlg.querySelectorAll('[data-easy-close]').forEach(b => b.addEventListener('click', close));
+  dlg.addEventListener('close', () => {
+    if (location.hash === '#easy') history.replaceState(history.state, '', location.pathname + location.search);
+    opener.focus();
+  });
+  if (location.hash === '#easy') open();
+})();

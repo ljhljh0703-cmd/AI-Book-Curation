@@ -207,5 +207,8 @@ footer.reader-footer{display:flex;align-items:center;flex-wrap:wrap;gap:28px;pad
 @media(max-width:820px){.story-list{grid-template-columns:1fr 1fr}.story-list li:nth-child(3){border-left:0}.story-list li:nth-child(n+3){border-top:1px solid var(--reader-line)}.rd-compare{grid-template-columns:1fr}}
 @media(max-width:600px){.story-list{grid-template-columns:1fr}.story-list li+li{border-left:0;border-top:1px solid var(--reader-line)}.story-list p{font-size:13px}.reader-mine{font-size:12px;flex-direction:column;gap:6px}.reader-story{padding:22px 0 24px}}
 .story-list p,.reader-lead,.reader-mine,.rd-col p,.rd-why{word-break:keep-all}
+.story-ghost{display:none}
+.h1-num b{font-weight:inherit;white-space:nowrap}
+.reading-page .fc-viz svg{width:100%;height:100%;stroke:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
 @media print{nav.reader-nav,.reader-actions,.reader-example-tabs,.reader-expand{display:none}.reader-shell{width:100%}.reader-hero{padding-top:0}.reader-detail{break-inside:avoid}.reader-sticker{width:90px}}

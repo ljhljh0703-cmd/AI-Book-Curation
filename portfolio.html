@@ -5,16 +5,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="portfolio-legacy.css"><link rel="stylesheet" href="portfolio-reading.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/variable/split/WantedSansVariable.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap">
+<link rel="stylesheet" href="portfolio-theme-paper.css">
+<link rel="stylesheet" href="portfolio-easy.css">
 </head><body class="reading-page">
 <a class="reader-skip" href="#overview">본문으로</a>
 <nav class="reader-nav" aria-label="프로젝트 탐색"><div class="reader-shell">
 <a class="reader-back" id="portfolio-back" href="../?work=01-bookemon#carousel"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg>작품 모음으로</a>
-<div class="reader-nav-links"><a href="#workflow">작동 흐름</a><a href="#evidence">결과</a><a href="#deep-read">자세히 읽기</a></div>
+<div class="reader-nav-links"><a href="#workflow">작동 흐름</a><a href="#evidence">결과</a><a href="#deep-read">자세히 읽기</a><button type="button" class="easy-open" id="easy-open" aria-haspopup="dialog" aria-controls="easy">쉽게 읽기</button></div>
 </div></nav>
 <main class="reader-shell" id="overview">
 <header class="reader-hero">
 <div class="reader-intro"><p class="reader-kicker">북켓몬 <span>AI 도서 추천 · 팀 프로젝트</span></p>
-<h1>맞지 않는 추천을<br>90권 중 14권에서 2권으로</h1>
+<h1><span class="h1-lead">맞지 않는 추천을</span><br><span class="h1-num">90권 중 <b>14권</b>에서 <b>2권</b>으로</span></h1>
 <p class="reader-lead">북켓몬은 읽고 싶은 책을 문장으로 말하면 후보를 추려 5권을 골라 주는 도서 추천 서비스입니다. <br class="desktop-break">추천 순위를 매기는 규칙을 설계하고, 팀원 4명이 직접 채점해 효과를 쟀습니다.</p>
 <a class="reader-result" href="#evidence"><strong>부적합 추천 15.56% → 2.22%</strong><span>순위 규칙 끔/켬 · 18개 질의 상위 5권 · 오프라인 평가</span></a>
 <p class="reader-mine"><span>내 담당</span>순위 계산 수식과 거르는 조건 직접 설계 · 평가 기준 설계와 채점 · 추천 파이프라인과 DB 스키마 설계 주도</p>
@@ -37,7 +41,7 @@
 
 <section class="reader-story" aria-labelledby="story-title">
 <div class="reader-section-head"><h2 id="story-title">처음 설계를 버리고 다시 짠 과정</h2><span>내 판단</span></div>
-<ol class="story-list"><li><span class="story-k">문제</span><p>처음에는 취향·인기·신간 점수를 가중합하는 수식을 설계했습니다. 돌려 보니 인기·신간 점수가 커져 사용자 맞춤의 의미가 없었습니다.</p></li><li><span class="story-k">판단</span><p>질문을 중심으로 후보를 더 뽑도록 순위 계산을 다시 짰습니다. 문장 뜻 점수에 가장 큰 비중을 두고 인기·신간 항은 뺐습니다. 장르·독자층·싫어하는 조건은 가점과 감점으로 넣었습니다.</p><a href="#decisions">처음 수식과 바꾼 수식 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></li><li><span class="story-k">검증</span><p>이 규칙을 끈 목록(문장 뜻 점수만)과 켠 목록을 18개 질의의 상위 5권으로 비교했습니다. 팀원 4명이 0·1·2점으로 직접 채점했습니다.</p></li><li class="story-result"><span class="story-k">결과</span><p>맞지 않는 책이 90권 중 <strong>14권에서 2권</strong>으로 줄었습니다.</p><a href="#evidence">평가 자세히 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></li></ol>
+<ol class="story-list"><li class="story-first"><span class="story-ghost" aria-hidden="true">w₁·취향 + w₂·인기 + w₃·신간</span><span class="story-k">문제</span><p>처음에는 취향·인기·신간 점수를 가중합하는 수식을 설계했습니다. 돌려 보니 인기·신간 점수가 커져 사용자 맞춤의 의미가 없었습니다.</p></li><li><span class="story-k">판단</span><p>질문을 중심으로 후보를 더 뽑도록 순위 계산을 다시 짰습니다. 문장 뜻 점수에 가장 큰 비중을 두고 인기·신간 항은 뺐습니다. 장르·독자층·싫어하는 조건은 가점과 감점으로 넣었습니다.</p><a href="#decisions">처음 수식과 바꾼 수식 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></li><li><span class="story-k">검증</span><p>이 규칙을 끈 목록(문장 뜻 점수만)과 켠 목록을 18개 질의의 상위 5권으로 비교했습니다. 팀원 4명이 0·1·2점으로 직접 채점했습니다.</p></li><li class="story-result"><span class="story-k">결과</span><p>맞지 않는 책이 90권 중 <strong>14권에서 2권</strong>으로 줄었습니다.</p><a href="#evidence">평가 자세히 보기 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></li></ol>
 </section>
 
 <section class="reader-highlights" aria-label="핵심 특징">
@@ -504,5 +508,37 @@
 </section>
 <footer class="reader-footer"><a href="../?work=01-bookemon#carousel" data-portfolio-back><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg>작품 모음으로</a><a href="https://github.com/ljhljh0703-cmd/AI-Book-Curation" target="_blank" rel="noopener">GitHub 저장소 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="https://ljhljh0703-cmd.github.io/AI-Book-Curation/" target="_blank" rel="noopener">라이브 피치 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="https://drive.google.com/drive/folders/1DByy4oU3Q_HryDCB1FZCWQPe92M3bt0f" target="_blank" rel="noopener">전체 산출물 폴더 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="mailto:ljhljh0703@gmail.com">ljhljh0703@gmail.com</a><span>북켓몬 · 이주형</span></footer>
 </main>
+<dialog class="easy" id="easy" aria-labelledby="easy-title">
+<div class="easy-scraps" aria-hidden="true"><span class="ez-hex h1"></span><span class="ez-hex h2"></span><span class="ez-hex h3"></span><img class="ez-tape t1" src="assets/collage/tape.webp" alt=""><img class="ez-tape t2" src="assets/collage/tape.webp" alt=""></div>
+<div class="easy-top"><button type="button" class="easy-close" data-easy-close>원래대로 읽기</button><span class="easy-who">이주형 · 북켓몬</span></div>
+<header class="easy-head">
+<div>
+<h2 id="easy-title" class="ez-h"><span class="ez-strip">맞지 않는 추천을</span><br><span class="ez-strip">90권 중</span><span class="ez-strip blue">14권 → 2권</span></h2>
+<p class="ez-lede">읽고 싶은 책을 문장으로 말하면 5권을 골라 주는 도서 추천 서비스입니다. 순위를 매기는 규칙을 설계하고, 팀원 4명이 직접 채점해 효과를 쟀습니다.</p>
+<div class="ez-play"><a class="ez-btn main" href="https://youtu.be/9ZVoAvCKdoI" target="_blank" rel="noopener">데모 영상 보기</a><a class="ez-btn" href="https://ljhljh0703-cmd.github.io/AI-Book-Curation/" target="_blank" rel="noopener">라이브 피치</a></div>
+</div>
+<figure class="ez-obj"><img src="assets/portfolio-sticker.webp" alt="" width="180" height="180"></figure>
+</header>
+<div class="ez-grid">
+<section class="ez-card wide" style="--tilt:-.6deg"><span class="ez-tag">01 이렇게 돌아갑니다</span>
+<ol class="ez-flow"><li>문장으로 말하기</li><li>비슷한 책 100권 찾기</li><li class="mine">순위를 매겨 5권 고르기<b>내 담당</b></li><li>읽고 기록 남기기</li></ol>
+<p class="ez-small">후보는 100권 → 50권 → 20권 → 5권으로 줄어듭니다(설계 기준).</p></section>
+<section class="ez-card kraft" style="--tilt:.8deg"><span class="ez-tag">02 다시 짠 계산</span>
+<p class="ez-old">취향·인기·신간을 섞어 점수 매기기</p><p class="ez-down" aria-hidden="true">↓</p>
+<p class="ez-new">질문의 뜻을 중심에 두고, 장르·독자층·싫어하는 조건을 더하고 빼기</p>
+<p class="ez-small">처음 수식은 인기·신간 점수가 커져 사용자 맞춤의 의미가 없었습니다.</p></section>
+<section class="ez-card blue" style="--tilt:-.9deg"><span class="ez-tag">03 내가 맡은 것</span>
+<ul class="ez-list"><li>순위 계산 수식과 거르는 조건 직접 설계</li><li>평가 기준 설계와 채점</li><li>추천 파이프라인과 DB 스키마 설계 주도</li><li>팀장 · 기획 리드</li></ul></section>
+<section class="ez-card wide" style="--tilt:.4deg"><span class="ez-tag">04 결과</span><span class="ez-stamp">2권</span>
+<p class="ez-band">90권 중 맞지 않는 책 <b>14권</b>에서 <b>2권</b>으로</p>
+<div class="ez-dots"><div><span>규칙 끔</span><p class="ez-d" role="img" aria-label="90권 중 14권 부적합"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i></p></div><div><span>규칙 켬</span><p class="ez-d on" role="img" aria-label="90권 중 2권 부적합"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="x"></i><i class="x"></i></p></div></div>
+<p class="ez-small">18개 질의 × 상위 5권 · 팀원 4명이 0·1·2점으로 직접 채점 · 같은 질의로 다시 잰 오프라인 평가입니다.</p></section>
+<section class="ez-card wide ez-row" style="--tilt:-.5deg"><span class="ez-tag">05 다시 오게 만드는 장치</span>
+<div class="ez-evo"><img src="bookemon_egg.png" alt="알" width="64" height="64"><span aria-hidden="true">→</span><img src="bookemon_hatch.png" alt="부화" width="64" height="64"><span aria-hidden="true">→</span><img src="bookemon_evo.png" alt="진화" width="64" height="64"></div>
+<p>독서 기록이 경험치가 되어 북켓몬이 자랍니다.</p></section>
+</div>
+<div class="easy-foot"><p>설계 비교와 평가 표는 원래 페이지에 있습니다.</p><button type="button" class="ez-btn" data-easy-close>원래대로 읽기</button><a class="ez-btn" href="https://github.com/ljhljh0703-cmd/AI-Book-Curation" target="_blank" rel="noopener">GitHub 저장소</a></div>
+</dialog>
+
 <script src="portfolio-reading.js"></script>
 </body></html>

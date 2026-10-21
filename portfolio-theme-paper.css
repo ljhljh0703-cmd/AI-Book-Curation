@@ -1,0 +1,122 @@
+/* 시안 A · 인쇄물 이음
+   작품 모음 콜라주(크림 종이 · 남색 2색 인쇄 · 테이프)를 상세 페이지까지 잇는다.
+   표현은 제목과 큰 숫자에만, 본문과 표는 한 가지 잉크로 또렷하게 읽히게 둔다. */
+:root{
+  --reader-bg:#eee6d6;
+  --reader-ink:#1b1a17;
+  --reader-muted:#5b544a;
+  --reader-line:#cbbfa6;
+  --reader-accent:#4b4ad1;
+  --paper-slip:#f6f0e3;
+  --print-red:#c0412a;
+  --bg:var(--reader-bg);--ink:var(--reader-ink);--line:var(--reader-line);--brand:var(--reader-accent);--bg-soft:#e6dcc8;
+}
+body{background:var(--reader-bg) url("assets/collage/paper-cream.jpg") repeat;background-size:512px;color:var(--reader-ink);font-family:"Wanted Sans Variable","Wanted Sans","Noto Sans KR",sans-serif}
+nav.reader-nav{background:rgba(238,230,214,.94);border-bottom-color:var(--reader-line)}
+
+/* 제목 = 2색 인쇄. 잉크판 위에 남색판이 살짝 어긋나 찍힌다 */
+.reader-hero h1,.reader-section-head h2,.reader-evidence h2,.reader-story h2{font-family:"Black Han Sans","Wanted Sans Variable",sans-serif;font-weight:400;letter-spacing:-.01em}
+.reader-hero h1{font-size:clamp(34px,4.6vw,62px);line-height:1.12;text-shadow:3px 2px 0 rgba(75,74,209,.55)}
+.reader-hero h1 .h1-num b{color:var(--reader-accent);text-shadow:3px 2px 0 rgba(27,26,23,.25)}
+
+/* 스티커는 테이프로 붙인 인쇄 스티커 */
+@media(min-width:601px){.reader-sticker{position:relative}}
+.reader-sticker::before{content:"";position:absolute;top:-14px;left:50%;width:96px;height:42px;transform:translateX(-50%) rotate(-6deg);background:url("assets/collage/tape.webp") center/contain no-repeat;z-index:2;opacity:.9}
+.reader-sticker figcaption{display:none}
+
+/* 정보 상자는 얇은 잉크 테두리의 종이 쪽지 */
+.reader-result{background:var(--paper-slip);border:1.5px solid var(--reader-ink);border-radius:0}
+.reader-result strong{color:var(--reader-accent)}
+.reader-mine>span,.step-number em{background:var(--reader-ink);border-radius:0}
+.reader-button{border-radius:0;border-color:var(--reader-ink);background:transparent;color:var(--reader-ink)}
+.reader-button.primary{background:var(--reader-ink);border-color:var(--reader-ink);color:var(--reader-bg)}
+.reader-button.primary:hover{background:#000}
+.reader-button:hover{background:rgba(27,26,23,.06)}
+.reader-workflow{border-top:2px solid var(--reader-ink)}
+.reader-steps li.is-mine h3{color:var(--reader-accent)}
+.rf-bar{background:#b9ad95;border-radius:0}
+.rf-last .rf-bar{background:var(--reader-accent)}
+
+/* 다시 짠 과정: 버린 수식이 흐리게 남은 종이 위에 새 설명이 찍혀 있다 */
+.story-list{background:var(--paper-slip);border:1.5px solid var(--reader-ink);border-radius:0}
+.story-list li+li{border-left-color:var(--reader-ink)}
+.story-first{position:relative;overflow:hidden}
+.story-ghost{display:block;position:absolute;right:-6px;bottom:8px;font-family:"Black Han Sans",sans-serif;font-size:30px;line-height:1;white-space:nowrap;color:rgba(27,26,23,.10);text-decoration:line-through;text-decoration-color:rgba(192,65,42,.55);text-decoration-thickness:3px;transform:rotate(-4deg);pointer-events:none}
+.story-k{color:var(--reader-accent);font-weight:800}
+.story-result{background:#e3dff6}
+
+/* 평가 점: 인쇄 망점처럼 남색·빨강 두 잉크 */
+.proof-dots i,.proof-legend i{background:#c9bea7}
+.proof-row.after .proof-dots i:not(.bad){background:rgba(75,74,209,.55)}
+.proof-dots i.bad,.proof-legend i.bad{background:var(--print-red)}
+.proof-row strong{font-family:"Wanted Sans Variable",sans-serif;font-weight:800}
+
+.reader-highlights article{border-left-color:var(--reader-ink)}
+.evo-stage img{background:var(--paper-slip);border-color:var(--reader-line);border-radius:0}
+.reader-detail{border-color:var(--reader-line)}
+.reader-legacy{background:var(--paper-slip);border-color:var(--reader-line);border-radius:0}
+.reader-legacy>.pad,.reader-legacy>.band{background:var(--paper-slip)!important}
+.rd-col{background:#fbf7ee;border-color:var(--reader-line);border-radius:0}
+.rd-col.rd-now{background:#e9e5f6;border-color:#b7b4e6}
+.rd-formula{background:#fffdf7;border-radius:0}
+
+/* 펼친 원래 내용도 같은 종이·두 잉크로. 그라데이션·둥근 카드·그림자를 걷어 낸다 */
+.reader-legacy{--bg:#f6f0e3;--bg-soft:#ebe2cf;--surface:#fbf7ee;--ink:#1b1a17;--ink-soft:#4f493f;--ink-faint:#857c6d;--line:#cbbfa6;
+  --brand:#4b4ad1;--brand-2:#4b4ad1;--accent:#4b4ad1;--warn:#c0412a;--shadow:none;--shadow-lg:none;--radius:0}
+.reader-legacy,.reader-legacy *{font-family:"Wanted Sans Variable","Wanted Sans","Noto Sans KR",sans-serif!important;letter-spacing:0}
+.reader-legacy h2.section-title{font-family:"Black Han Sans","Wanted Sans Variable",sans-serif!important;font-weight:400;letter-spacing:0}
+.reader-legacy .eyebrow{background:none;border:0;padding:0;border-radius:0;letter-spacing:.02em;text-transform:none;font-size:14px;color:var(--brand)}
+.reader-legacy .arch{background:none}
+.reader-legacy .feat-card,.reader-legacy .node,.reader-legacy .meta-card,.reader-legacy .rank-lab,.reader-legacy .stage-card,
+.reader-legacy .reranker-callout,.reader-legacy .card,.reader-legacy .ch,.reader-legacy .rl-bk,.reader-legacy .scol li,.reader-legacy .axis-list li{
+  border-radius:0;box-shadow:none;background:var(--surface);border:1px solid var(--line)}
+.reader-legacy .feat-card:hover,.reader-legacy .node:hover,.reader-legacy .card:hover{transform:none;box-shadow:none}
+.reader-legacy .rank-lab,.reader-legacy .ch,.reader-legacy .node{border:1.5px solid var(--ink)}
+.reader-legacy .stage-card:first-child,.reader-legacy .stage-card:last-child{border-left:3px solid var(--brand)}
+.reader-legacy .meta-card{background:var(--surface)}
+.reader-legacy [class^="fcbg"],.reader-legacy [class*=" fcbg"]{background:#ebe2cf}
+.fc-viz [fill="#3b6fff"],.fc-viz [fill="#7a5cff"],.fc-viz [fill="#5578ff"]{fill:#4b4ad1}
+.fc-viz [fill="#ff7a59"]{fill:#c0412a}.fc-viz [fill="#bcd0ef"]{fill:#cbbfa6}.fc-viz [stroke="#bcd0ef"]{stroke:#cbbfa6}.fc-viz [fill="#f0d9cd"]{fill:#e3d6bd}
+.fc-viz [fill="#00c2b8"]{fill:#1b1a17}
+.fc-viz [stroke="#3b6fff"],.fc-viz [stroke="#7a5cff"]{stroke:#4b4ad1}
+.fc-viz [stroke="#00c2b8"]{stroke:#1b1a17}
+.reader-legacy .ch-no,.reader-legacy .ablation-table th{background:var(--ink);color:#f6f0e3}
+.reader-legacy .ablation-table{border-radius:0;box-shadow:none;border:1.5px solid var(--ink)}
+.reader-legacy .ablation-table .on{color:var(--brand)}
+.reader-legacy .ablation-table .off{color:var(--warn)}
+.reader-legacy .ch-body h3 .tag,.reader-legacy .badge-cite,.reader-legacy .stage-tag{border-radius:0;background:none;border:1px solid currentColor;color:var(--brand)}
+.reader-legacy .ch-result{border-radius:0;background:#e9e5f6;border:0}
+.reader-legacy .ch-result .k{color:var(--brand)}
+.reader-legacy .reranker-callout code,.reader-legacy .node .tags span{border-radius:0;background:var(--bg-soft)}
+.reader-legacy .arrow{background:var(--ink)}
+.reader-legacy .arrow::after{border-top-color:var(--ink)}
+.reader-legacy .arrow::before{display:none}
+.reader-legacy .tl-item::before{background:var(--bg);box-shadow:none}
+.reader-legacy .tl-item .res{border-radius:0;background:none;border:1px solid var(--ink);color:var(--ink);animation:none}
+.reader-legacy .scol li .b{color:var(--brand)!important;background:var(--brand)!important;filter:none;animation:none}
+.reader-legacy .band .lead-q .mk{background:none;color:var(--brand)}
+.reader-legacy .rl-presets button{border-radius:0}
+.reader-legacy .rl-bk.top{background:#e9e5f6}
+.reader-legacy .rl-bk .rl-br,.reader-legacy .rl-bk .rl-br i{border-radius:0}
+.reader-legacy .rl-bk .rl-br i{background:var(--brand)}
+.reader-legacy [style*="border-radius"]{border-radius:0!important}
+.reader-legacy .rl-take{border-radius:0;background:#e9e5f6;border:0}
+/* 임베딩 비교: 남색 밤하늘 카드 → 먹 한 장 */
+.reader-legacy .bench-card{background:var(--ink);border-radius:0;box-shadow:none}
+.reader-legacy .bench-card::before{display:none}
+.reader-legacy .bench-card .bc-title,.reader-legacy .bench-model .bm-label,.reader-legacy .bench-metric .bk,.reader-legacy .bench-card .bc-sub .bc-ref{color:#b5ab98}
+.reader-legacy .bench-card .bc-sub{color:#d9d0be}
+.reader-legacy .bench-model{border-radius:0;background:rgba(246,240,227,.05);border:1px solid rgba(246,240,227,.18)}
+.reader-legacy .bench-model.winner{background:rgba(75,74,209,.28);border:1.5px solid #f6f0e3;box-shadow:none}
+.reader-legacy .bench-model.winner .bm-label{background:#f6f0e3;color:var(--ink);border-radius:0}
+.reader-legacy .bench-metric .bv.up{color:#ffd84a}
+.reader-legacy .bench-metric .bv.warn{color:#ff9a80}
+.reader-legacy .bench-card .bc-summary{border-radius:0;background:none;border:1px solid rgba(246,240,227,.4)}
+.reader-legacy .bc-summary-k{color:#ffd84a}
+.reader-legacy .bc-summary-v b.hl{color:#ffd84a}
+
+@media(max-width:600px){
+  .reader-hero h1{font-size:31px;text-shadow:2px 1.5px 0 rgba(75,74,209,.55)}
+  .reader-sticker::before{width:64px;height:28px;top:-10px}
+  .story-ghost{font-size:22px}
+}
