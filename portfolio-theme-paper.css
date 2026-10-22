@@ -14,10 +14,10 @@
 body{background:var(--reader-bg) url("assets/collage/paper-cream.jpg") repeat;background-size:512px;color:var(--reader-ink);font-family:"Wanted Sans Variable","Wanted Sans","Noto Sans KR",sans-serif}
 nav.reader-nav{background:rgba(238,230,214,.94);border-bottom-color:var(--reader-line)}
 
-/* 제목 = 2색 인쇄. 잉크판 위에 남색판이 살짝 어긋나 찍힌다 */
-.reader-hero h1,.reader-section-head h2,.reader-evidence h2,.reader-story h2{font-family:"Black Han Sans","Wanted Sans Variable",sans-serif;font-weight:400;letter-spacing:-.01em}
-.reader-hero h1{font-size:clamp(34px,4.6vw,62px);line-height:1.12;text-shadow:3px 2px 0 rgba(75,74,209,.55)}
-.reader-hero h1 .h1-num b{color:var(--reader-accent);text-shadow:3px 2px 0 rgba(27,26,23,.25)}
+/* 제목 = 읽기 쉬운 굵은 본문 글꼴, 그림자 없음 (작가 10-22 「이런 폰트 디자인 ㄴㄴ 가독성 안 좋아」) */
+.reader-hero h1,.reader-section-head h2,.reader-evidence h2,.reader-story h2{font-family:"Wanted Sans Variable",sans-serif;font-weight:800;letter-spacing:-.025em;word-break:keep-all}
+.reader-hero h1{font-size:clamp(32px,4.2vw,54px);line-height:1.28}
+.reader-hero h1 .h1-num b{color:var(--reader-accent)}
 
 /* 스티커는 테이프로 붙인 인쇄 스티커 */
 @media(min-width:601px){.reader-sticker{position:relative}}
@@ -116,7 +116,7 @@ nav.reader-nav{background:rgba(238,230,214,.94);border-bottom-color:var(--reader
 .reader-legacy .bc-summary-v b.hl{color:#ffd84a}
 
 @media(max-width:600px){
-  .reader-hero h1{font-size:31px;text-shadow:2px 1.5px 0 rgba(75,74,209,.55)}
+  .reader-hero h1{font-size:29px}
   .reader-sticker::before{width:64px;height:28px;top:-10px}
   .story-ghost{font-size:22px}
 }
