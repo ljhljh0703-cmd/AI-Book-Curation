@@ -41,7 +41,7 @@ nav.reader-nav{background:rgba(238,230,214,.94);border-bottom-color:var(--reader
 .story-list{background:var(--paper-slip);border:1.5px solid var(--reader-ink);border-radius:0}
 .story-list li+li{border-left-color:var(--reader-ink)}
 .story-first{position:relative;overflow:hidden}
-.story-ghost{display:block;position:absolute;right:-6px;bottom:8px;font-family:"Black Han Sans",sans-serif;font-size:30px;line-height:1;white-space:nowrap;color:rgba(27,26,23,.10);text-decoration:line-through;text-decoration-color:rgba(192,65,42,.55);text-decoration-thickness:3px;transform:rotate(-4deg);pointer-events:none}
+.story-ghost{display:block;position:absolute;right:-6px;bottom:8px;font-family:"Wanted Sans Variable",sans-serif;font-weight:800;font-size:30px;line-height:1;white-space:nowrap;color:rgba(27,26,23,.10);text-decoration:line-through;text-decoration-color:rgba(192,65,42,.55);text-decoration-thickness:3px;transform:rotate(-4deg);pointer-events:none}
 .story-k{color:var(--reader-accent);font-weight:800}
 .story-result{background:#e3dff6}
 
@@ -64,7 +64,7 @@ nav.reader-nav{background:rgba(238,230,214,.94);border-bottom-color:var(--reader
 .reader-legacy{--bg:#f6f0e3;--bg-soft:#ebe2cf;--surface:#fbf7ee;--ink:#1b1a17;--ink-soft:#4f493f;--ink-faint:#857c6d;--line:#cbbfa6;
   --brand:#4b4ad1;--brand-2:#4b4ad1;--accent:#4b4ad1;--warn:#c0412a;--shadow:none;--shadow-lg:none;--radius:0}
 .reader-legacy,.reader-legacy *{font-family:"Wanted Sans Variable","Wanted Sans","Noto Sans KR",sans-serif!important;letter-spacing:0}
-.reader-legacy h2.section-title{font-family:"Black Han Sans","Wanted Sans Variable",sans-serif!important;font-weight:400;letter-spacing:0}
+.reader-legacy h2.section-title{font-family:"Wanted Sans Variable",sans-serif!important;font-weight:800;letter-spacing:-.02em}
 .reader-legacy .eyebrow{background:none;border:0;padding:0;border-radius:0;letter-spacing:.02em;text-transform:none;font-size:14px;color:var(--brand)}
 .reader-legacy .arch{background:none}
 .reader-legacy .feat-card,.reader-legacy .node,.reader-legacy .meta-card,.reader-legacy .rank-lab,.reader-legacy .stage-card,
